@@ -51,13 +51,13 @@ def select_file(
 
     # when the button for selecting the file has been clicked
     if trigger == ids.SELECT_FILES_BUTTON:
-        data = file_path if file_data else None
+        data = None  # Reset selection state, do not pass CWD to loader.
 
     if trigger == ids.STORED_CWD and file_path:
         path = Path(file_path)
         
         if path.is_file():
-            extension = path.suffix if not path.name.startswith(".") else path.name
+            extension = path.suffix.lower() if not path.name.startswith(".") else path.name.lower()
             int_type = int(file_type)
 
             # check if the file extension is compatible with the file type selected
@@ -119,11 +119,13 @@ def load_selected_data(data_path, cancel_load, sig, file_type, fig):
             ticked = sig
         else:
             path = Path(data_path)
+            print(f"[DEBUG] Loading: {path} | vendor: {InputFiletypes(int(file_type)).name.lower()} | is_file: {path.is_file()}")
             file_data = load_eit_data(
                 path,
                 vendor=InputFiletypes(int(file_type)).name.lower(),
                 label="selected data",
             )
+            print(f"[DEBUG] Loaded. continuous_data keys: {list(file_data.continuous_data.keys())}")
 
             options = get_signal_options(file_data)
 

@@ -203,6 +203,10 @@ def create_slider_figure(
     if continuous_data is None:
         continuous_data = []
 
+    if RAW_EIT_LABEL not in dataset.continuous_data:
+        keys = list(dataset.continuous_data.keys()) if hasattr(dataset.continuous_data, "keys") else list(dataset.continuous_data)
+        raise KeyError(f"Expected '{RAW_EIT_LABEL}' not found. Available keys: {keys}")
+
     figure.add_trace(
         go.Scatter(
             x=dataset.continuous_data[RAW_EIT_LABEL].time,
