@@ -9,6 +9,7 @@ import eit_dash.definitions.layout_styles as styles
 from eit_dash.app import data_object
 from eit_dash.definitions.constants import FILTERED_EIT_LABEL, RAW_EIT_LABEL
 from eit_dash.utils.common import (
+    apply_figure_theme,
     create_filter_results_card,
     create_info_card,
     create_selected_period_card,
@@ -120,9 +121,13 @@ def show_eeli(selected):
     figure = go.Figure()
 
     sequence = data_object.get_stable_period(int(selected)).get_data()
+
+    # Find the matching EELI result (may not exist if EELI hasn't been computed)
+    result = None
     for e in eeli:
         if e["index"] == int(selected):
             result = e
+            break
 
     if sequence.continuous_data.get(FILTERED_EIT_LABEL):
         data = sequence.continuous_data.get(FILTERED_EIT_LABEL)
@@ -137,41 +142,42 @@ def show_eeli(selected):
         ),
     )
 
-    figure.add_hline(y=result["mean"], line_color="red", name="Mean")
-    figure.add_hline(y=result["median"], line_color="red", name="Median")
+    if result is not None:
+        figure.add_hline(y=result["mean"], line_color="red", name="Mean")
+        figure.add_hline(y=result["median"], line_color="red", name="Median")
 
-    figure.add_scatter(
-        x=data.time[result["indices"]],
-        y=result["values"],
-        line_color="black",
-        name="EELIs",
-        mode="markers",
-    )
+        figure.add_scatter(
+            x=data.time[result["indices"]],
+            y=result["values"],
+            line_color="black",
+            name="EELIs",
+            mode="markers",
+        )
 
-    sd_upper = result["mean"] + result["standard deviation"]
-    sd_lower = result["mean"] - result["standard deviation"]
+        sd_upper = result["mean"] + result["standard deviation"]
+        sd_lower = result["mean"] - result["standard deviation"]
 
-    figure.add_trace(
-        go.Scatter(
-            x=data.time,
-            y=[sd_upper] * len(data.time),
-            fill=None,
-            mode="lines",
-            line_color="rgba(0,0,255,0)",  # Set to transparent blue
-            name="Standard deviation",
-        ),
-    )
+        figure.add_trace(
+            go.Scatter(
+                x=data.time,
+                y=[sd_upper] * len(data.time),
+                fill=None,
+                mode="lines",
+                line_color="rgba(0,0,255,0)",  # transparent blue
+                name="Standard deviation",
+            ),
+        )
 
-    # Add the lower bound line
-    figure.add_trace(
-        go.Scatter(
-            x=data.time,
-            y=[sd_lower] * len(data.time),
-            fill="tonexty",  # Fill area below this line
-            mode="lines",
-            line_color="rgba(0,0,255,0.3)",  # Set to semi-transparent blue
-            name="Standard deviation",
-        ),
-    )
+        # Add the lower bound line
+        figure.add_trace(
+            go.Scatter(
+                x=data.time,
+                y=[sd_lower] * len(data.time),
+                fill="tonexty",  # Fill area below this line
+                mode="lines",
+                line_color="rgba(0,0,255,0.3)",  # semi-transparent blue
+                name="Standard deviation",
+            ),
+        )
 
-    return figure, styles.GRAPH
+    return apply_figure_theme(figure), styles.GRAPH

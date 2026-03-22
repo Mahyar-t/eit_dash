@@ -32,14 +32,12 @@ file_data: Sequence | None = None
     Output(ids.NFILES_PLACEHOLDER, "children"),
     Output(ids.ALERT_LOAD, "is_open"),
     Input(ids.SELECT_FILES_BUTTON, "n_clicks"),
-    Input(ids.SELECT_CONFIRM_BUTTON, "n_clicks"),
-    State(ids.STORED_CWD, "data"),
+    Input(ids.STORED_CWD, "data"),
     State(ids.INPUT_TYPE_SELECTOR, "value"),
     prevent_initial_call=True,
 )
 def select_file(
     select_file,
-    confirm_select,
     file_path,
     file_type,
 ):
@@ -53,40 +51,40 @@ def select_file(
 
     # when the button for selecting the file has been clicked
     if trigger == ids.SELECT_FILES_BUTTON:
-        # if a file has been loaded already, the data should not be cancelled,
-        # unless a new file is loaded. if `data` is None, the selection is cancelled
         data = file_path if file_data else None
 
-    # if the callback has not been triggered by the select files button,
-    # get the information on the selected file and try to read it
-    if trigger == ids.SELECT_CONFIRM_BUTTON:
+    if trigger == ids.STORED_CWD and file_path:
         path = Path(file_path)
-        extension = path.suffix if not path.name.startswith(".") else path.name
+        
+        if path.is_file():
+            extension = path.suffix if not path.name.startswith(".") else path.name
+            int_type = int(file_type)
 
-        int_type = int(file_type)
+            # check if the file extension is compatible with the file type selected
+            if (
+                (int_type == InputFiletypes.Draeger.value and extension == ".bin")
+                or (int_type == InputFiletypes.Timpel.value and extension == ".txt")
+                or (int_type == InputFiletypes.Sentec.value and extension == ".zri")
+            ):
+                read_data_flag = True
 
-        # check if the file extension is compatible with the file type selected
-        if (
-            (int_type == InputFiletypes.Draeger.value and extension == ".bin")
-            or (int_type == InputFiletypes.Timpel.value and extension == ".txt")
-            or (int_type == InputFiletypes.Sentec.value and extension == ".zri")
-        ):
-            read_data_flag = True
+            # if the type check is ok, then close the file selector and read the data
+            if read_data_flag:
+                data = file_path
+                open_modal = False
 
-        # if the type check is ok, then close the file selector and read the data
-        if read_data_flag:
-            data = file_path
-            open_modal = False
-
-        # if it's not ok, then show an alert
+            # if it's not ok, then show an alert
+            else:
+                show_alert = True
         else:
-            show_alert = True
+            # If it's a directory, do nothing (modal stays open, directory navigation happens elsewhere)
+            raise PreventUpdate
 
     return open_modal, data, show_alert
 
 
 @callback(
-    Output(ids.DATA_SELECTOR_OPTIONS, "hidden"),
+    Output(ids.DATA_SELECTOR_OPTIONS, "hidden", allow_duplicate=True),
     Output(ids.CHECKBOX_SIGNALS, "options"),
     Output(ids.CHECKBOX_SIGNALS, "value"),
     Output(ids.FILE_LENGTH_SLIDER, "figure"),
@@ -141,22 +139,21 @@ def load_selected_data(data_path, cancel_load, sig, file_type, fig):
             ok += [options[s]["label"] for s in ticked]
 
         for s in figure["data"]:
-            if s["name"] in ok:
-                # raw signal visible
-                if s["name"] == RAW_EIT_LABEL:
-                    s["visible"] = True
-                else:
-                    # other selected signals are included but toggled off
-                    # (the legend item has to be clicked to make the trace visible)
-                    s["visible"] = "legendonly"
-            else:
-                s["visible"] = False
+            is_visible = (s["name"] in ok)
+            s["visible"] = True if is_visible else False
+            
+            if "yaxis" in s and s["yaxis"]:
+                # Map 'y2' -> 'yaxis2' 
+                axis_name = s["yaxis"].replace("y", "yaxis")
+                if axis_name in figure["layout"]:
+                    figure["layout"][axis_name]["visible"] = is_visible
 
     return False, options, ticked, figure
 
 
 @callback(
     Output(ids.DATASET_CONTAINER, "children", allow_duplicate=True),
+    Output(ids.DATA_SELECTOR_OPTIONS, "hidden", allow_duplicate=True),
     Input(ids.LOAD_CONFIRM_BUTTON, "n_clicks"),
     State(ids.NFILES_PLACEHOLDER, "children"),
     State(ids.DATASET_CONTAINER, "children"),
@@ -218,7 +215,10 @@ def show_info(
         else:
             container_state = [card]
 
-    return container_state
+        # hide the pre-selection UI after confirming
+        return container_state, True
+
+    return container_state, True
 
 
 # file browser
@@ -237,10 +237,24 @@ def get_parent_directory(stored_cwd, n_clicks, currentdir):
     return str(Path(currentdir).parent)
 
 
-@callback(Output(ids.CWD_FILES, "children"), Input(ids.CWD, "children"))
-def list_cwd_files(cwd):
-    """List files in thde directory."""
+@callback(
+    Output(ids.CWD_FILES, "children"),
+    Input(ids.CWD, "children"),
+    Input(ids.INPUT_TYPE_SELECTOR, "value"),
+)
+def list_cwd_files(cwd, vendor_type):
+    """List files in the directory."""
     path = Path(cwd)
+
+    allowed_ext = None
+    if vendor_type:
+        vendor_id = int(vendor_type)
+        if vendor_id == InputFiletypes.Draeger.value:
+            allowed_ext = ".bin"
+        elif vendor_id == InputFiletypes.Timpel.value:
+            allowed_ext = ".txt"
+        elif vendor_id == InputFiletypes.Sentec.value:
+            allowed_ext = ".zri"
 
     cwd_files = []
     if path.is_dir():
@@ -252,35 +266,42 @@ def list_cwd_files(cwd):
             is_dir = Path(full_path).is_dir()
             extension = filepath.suffix if not filepath.name.startswith(".") else filepath.name
 
-            if is_dir or extension in [".bin", ".txt", ".zri"]:
-                link = html.A(
+            if is_dir or (allowed_ext and extension == allowed_ext):
+                icon = "📂" if is_dir else extension.replace(".", "").upper()
+                icon_class = "browser-icon folder-icon" if is_dir else "browser-icon file-icon-text"
+                item = html.A(
                     [
-                        html.Span(
-                            file,
-                            id={"type": "listed_file", "index": i},
-                            title=str(full_path),
-                            style={"fontWeight": "bold"} if is_dir else {},
-                        ),
+                        html.Div(icon, className=icon_class),
+                        html.Div(file, className="browser-item-name"),
                     ],
+                    id={"type": "listed_file", "index": i},
+                    title=str(full_path),
                     href="#",
+                    className="browser-grid-item",
                 )
-                prepend = "🖹" if not is_dir else "📂"
-                cwd_files.append(prepend)
-                cwd_files.append(link)
-                cwd_files.append(html.Br())
+                cwd_files.append(item)
     return cwd_files
 
 
 @callback(
     Output(ids.STORED_CWD, "data"),
     Input({"type": "listed_file", "index": ALL}, "n_clicks"),
+    Input(ids.SELECT_FILES_BUTTON, "n_clicks"),
     State({"type": "listed_file", "index": ALL}, "title"),
+    prevent_initial_call=True,
 )
-def store_clicked_file(n_clicks, title):
-    """Saves path of currently clicked file."""
+def store_clicked_file(n_clicks, select_btn, title):
+    """Saves path of currently clicked file or resets to root."""
+    trigger = ctx.triggered_id
+    if not trigger:
+        raise PreventUpdate
+
+    if trigger == ids.SELECT_FILES_BUTTON:
+        return str(Path.cwd())
+
     if not n_clicks or set(n_clicks) == {None}:
         raise PreventUpdate
-    index = ctx.triggered_id["index"]
+    index = trigger["index"]
     for state in ctx.states_list[0]:
         if state["id"]["index"] == index:
             return state["value"]

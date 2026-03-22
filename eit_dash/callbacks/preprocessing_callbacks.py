@@ -17,6 +17,7 @@ from eit_dash.app import data_object
 from eit_dash.definitions.constants import FILTERED_EIT_LABEL, RAW_EIT_LABEL
 from eit_dash.definitions.option_lists import FilterTypes, PeriodsSelectMethods
 from eit_dash.utils.common import (
+    apply_figure_theme,
     create_filter_results_card,
     create_info_card,
     create_selected_period_card,
@@ -355,6 +356,7 @@ def select_period(
     )
 
     # TODO: refactor to avoid duplications
+    signals = signals or []
     ok = [options[s]["label"] for s in signals]
     for s in current_figure["data"]:
         if s["name"] in ok:
@@ -705,7 +707,7 @@ def show_filtered_results(_, update, selected):
         ),
     )
 
-    return fig, styles.GRAPH
+    return apply_figure_theme(fig), styles.GRAPH
 
 
 @callback(
