@@ -87,7 +87,7 @@ actions = html.Div(
 
 results = html.Div(
     [
-        html.H2("Results", style=styles.COLUMN_TITLE),
+        html.H2("Selected periods", style=styles.COLUMN_TITLE),
         html.Div(
             [
                 html.Div(id=ids.PREPROCESING_RESULTS_CONTAINER, style=styles.LOAD_RESULTS),

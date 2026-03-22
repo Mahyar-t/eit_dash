@@ -45,7 +45,7 @@ add_data_selector = dcc.Loading(
         id=ids.DATA_SELECTOR_OPTIONS,
         hidden=True,
         children=[
-            html.H5("Pre-selection", style=styles.SECTION_TITLE),
+            html.H5("Pre-selection", style={**styles.SECTION_TITLE, "marginTop": "0.1rem"}),
             dcc.Graph(id=ids.FILE_LENGTH_SLIDER),
             html.H5("Signal selections", style=styles.SECTION_TITLE, className="mt-4"),
             dbc.Row(

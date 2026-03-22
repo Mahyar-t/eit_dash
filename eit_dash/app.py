@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 
 import dash_bootstrap_components as dbc
 from dash import Dash
@@ -18,4 +19,6 @@ app = Dash(
     use_pages=True,
     external_stylesheets=external_stylesheets,
     suppress_callback_exceptions=True,
+    title="EIT-ALIVE Dashboard",
+    assets_folder=str(Path(__file__).with_name("assets")),
 )
