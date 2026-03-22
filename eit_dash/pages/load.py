@@ -7,106 +7,126 @@ import eit_dash.definitions.element_ids as ids
 import eit_dash.definitions.layout_styles as styles
 from eit_dash.definitions.option_lists import InputFiletypes
 
-register_page(__name__, path="/")
+register_page(__name__, path="/load")
 
-summary = dbc.Col([html.H2("Summary", style=styles.COLUMN_TITLE)])
 
-results = dbc.Col(
-    [
-        html.H2("Results", style=styles.COLUMN_TITLE, id=ids.LOAD_RESULTS_TITLE),
-        html.Div(id=ids.DATASET_CONTAINER, style=styles.LOAD_RESULTS),
-    ],
-)
 
 input_type_selector = html.Div(
     [
-        dbc.Select(
-            id=ids.INPUT_TYPE_SELECTOR,
-            options=[{"label": filetype.name, "value": filetype.value} for filetype in InputFiletypes],
-            value=str(InputFiletypes.Sentec.value),
+        html.Div(
+            [
+                html.Div(
+                    dbc.Select(
+                        id=ids.INPUT_TYPE_SELECTOR,
+                        options=[{"label": filetype.name, "value": filetype.value} for filetype in InputFiletypes],
+                        value=str(InputFiletypes.Sentec.value),
+                        className="form-select",
+                    ),
+                    style={"flex": "8"},
+                ),
+                html.Div(
+                    dbc.Button(
+                        "Select Files",
+                        id=ids.SELECT_FILES_BUTTON,
+                        className="glass-button glass-button--primary w-100",
+                    ),
+                    style={"flex": "2"},
+                ),
+            ],
+            className="d-flex gap-3",
         ),
-        html.P(),
-        dbc.Row(dbc.Button("Select files", id=ids.SELECT_FILES_BUTTON)),
-        dbc.Row(dbc.Label(id=ids.METADATA)),
+        dbc.Row(dbc.Label(id=ids.METADATA, className="field-meta")),
     ],
+    className="action-stack mt-3",
 )
 
-max_slider_length = 100
 add_data_selector = dcc.Loading(
     html.Div(
         id=ids.DATA_SELECTOR_OPTIONS,
         hidden=True,
         children=[
-            html.P(),
-            html.H5("Signal selections", style=styles.SECTION_TITLE),
+            html.H5("Pre-selection", style=styles.SECTION_TITLE),
+            dcc.Graph(id=ids.FILE_LENGTH_SLIDER),
+            html.H5("Signal selections", style=styles.SECTION_TITLE, className="mt-4"),
             dbc.Row(
                 dcc.Checklist(
                     id=ids.CHECKBOX_SIGNALS,
                     inputStyle=styles.CHECKBOX_INPUT,
+                    className="signal-checklist",
                 ),
             ),
-            html.H5("Pre selection", style=styles.SECTION_TITLE),
-            dcc.Graph(id=ids.FILE_LENGTH_SLIDER),
-            html.Div(),
             dbc.Row(
                 [
                     dbc.Col(
-                        [
-                            dbc.Button(
-                                "Cancel",
-                                id=ids.LOAD_CANCEL_BUTTON,
-                                className="ms-auto",
-                                color="danger",
-                                n_clicks=0,
-                            ),
-                        ],
+                        dbc.Button(
+                            "Cancel",
+                            id=ids.LOAD_CANCEL_BUTTON,
+                            className="glass-button glass-button--ghost w-100",
+                            color="danger",
+                            n_clicks=0,
+                        ),
                     ),
                     dbc.Col(
-                        [
-                            dbc.Button(
-                                "Confirm",
-                                id=ids.LOAD_CONFIRM_BUTTON,
-                                className="ms-auto",
-                                color="success",
-                                n_clicks=0,
-                            ),
-                        ],
+                        dbc.Button(
+                            "Confirm",
+                            id=ids.LOAD_CONFIRM_BUTTON,
+                            className="glass-button glass-button--primary w-100",
+                            color="success",
+                            n_clicks=0,
+                        ),
                     ),
                 ],
                 style=styles.BUTTONS_ROW,
+                className="g-3",
             ),
         ],
     ),
 )
 
-actions = dbc.Col(
+results = html.Div(
     [
-        html.H2("Load datasets", style=styles.COLUMN_TITLE),
-        html.P(),
-        input_type_selector,
-        html.P(),
-        add_data_selector,
+        html.H2("Data Preview", id=ids.LOAD_RESULTS_TITLE, style=styles.COLUMN_TITLE),
+        html.Div(
+            [
+                add_data_selector,
+                html.Div(id=ids.DATASET_CONTAINER, style=styles.LOAD_RESULTS),
+            ],
+            className="glass-panel--results",
+        ),
     ],
+    className="workflow-section workflow-section--feature workflow-section--results",
 )
 
-placeholder_nfiles = html.Div(
-    hidden=True,
-    id=ids.NFILES_PLACEHOLDER,
-    children=0,
+actions = html.Div(
+    [
+        html.H1("Load Datasets", className="page-kicker"),
+        html.P(
+            "Choose a vendor format, preview the recording, and cut the imported file into datasets you want to keep.",
+            className="page-intro",
+        ),
+        input_type_selector,
+    ],
+    className="workflow-section workflow-section--feature",
 )
+
+placeholder_nfiles = html.Div(hidden=True, id=ids.NFILES_PLACEHOLDER, children=0)
 
 file_browser = html.Div(
     [
         dbc.Row(
             [
                 dcc.Store(id=ids.STORED_CWD, data=str(Path.cwd())),
-                html.H5(
-                    html.B(html.A("⬆️ Parent directory", href="#", id=ids.PARENT_DIR)),
+                dbc.Button(
+                    [
+                        html.I(className="fas fa-level-up-alt me-2"),
+                        "Parent Directory",
+                    ],
+                    id=ids.PARENT_DIR,
+                    className="glass-button glass-button--secondary mb-4 mx-2",
+                    style={"width": "auto"},
                 ),
-                html.H3([html.Code(str(Path.cwd()), id=ids.CWD)]),
-                html.Br(),
-                html.Br(),
-                html.Div(id=ids.CWD_FILES, style=styles.FILE_BROWSER),
+                html.Div(html.Code(str(Path.cwd()), id=ids.CWD), style={"display": "none"}),
+                html.Div(id=ids.CWD_FILES, style=styles.FILE_BROWSER, className="browser-list gap-3"),
             ],
         ),
     ],
@@ -127,60 +147,57 @@ modal_dialog = html.Div(
             [
                 dbc.Modal(
                     [
-                        dbc.ModalHeader(
-                            dbc.ModalTitle("Select a file"),
-                            close_button=True,
-                        ),
+                        dbc.ModalHeader(dbc.ModalTitle("Select a file"), close_button=True),
                         dbc.ModalBody([alert_load, file_browser]),
-                        dbc.ModalFooter(
-                            dbc.Button(
-                                "Confirm",
-                                id=ids.SELECT_CONFIRM_BUTTON,
-                                className="ms-auto",
-                                n_clicks=0,
-                            ),
-                        ),
                     ],
                     id=ids.CHOOSE_DATA_POPUP,
                     centered=True,
                     is_open=False,
                     backdrop=False,
                     scrollable=True,
+                    className="glass-modal",
+                    size="xl",
                 ),
             ],
         ),
     ],
 )
 
-# This is a placeholder for triggering repopulating of data when page is reloaded
 populate_loaded_data = html.Div(id=ids.POPULATE_DATA)
 
-layout = dbc.Row(
+layout = html.Div(
     [
-        html.H1("LOAD DATA", style=styles.COLUMN_TITLE),
-        summary,
-        actions,
-        results,
+        html.Div(
+            [
+                html.Div(
+                    [
+                        html.P("Step 1 - Load Data", className="page-kicker"),
+                        html.P(
+                            "Bring in a local file, inspect the available channels, and prepare a clean set of datasets for the next stage. Loaded datasets and selections will appear here.",
+                            className="page-intro",
+                        ),
+                    ],
+                    className="page-hero",
+                ),
+                html.Div([actions, results], className="workflow-board"),
+                html.Div(
+                    [
+                        html.Div(className="process-footer-spacer"),
+                        dbc.NavLink(
+                            [html.Span("Next"), html.I(className="fas fa-arrow-right")],
+                            href="/preprocessing",
+                            id=ids.NEXT_PAGE_LINK_LOAD,
+                            className="process-nav-button process-nav-button--next",
+                        ),
+                    ],
+                    className="process-footer",
+                ),
+            ],
+            className="stage-card stage-card--load glass-panel",
+        ),
         placeholder_nfiles,
         modal_dialog,
         populate_loaded_data,
-        # TODO: the following is duplicated in multiple pages. To be refactored
-        html.Div(
-            [
-                dbc.NavLink(
-                    dbc.Button(
-                        className="fa fa-arrow-circle-right",
-                        id=ids.NEXT_PAGE_BUTTON_LOAD,
-                        style=styles.NEXT_PAGE_BUTTON,
-                    ),
-                    href="/preprocessing",
-                    id=ids.NEXT_PAGE_LINK_LOAD,
-                ),
-                html.Div(
-                    "NEXT PAGE",
-                    style=styles.NEXT_PAGE_SECTION,
-                ),
-            ],
-        ),
     ],
+    className="page-shell",
 )

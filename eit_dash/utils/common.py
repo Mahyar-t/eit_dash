@@ -21,11 +21,52 @@ if TYPE_CHECKING:
 def blank_fig():
     """Create an empty figure."""
     fig = go.Figure(go.Scatter(x=[], y=[]))
-    fig.update_layout(template=None)
+    fig.update_layout(template='plotly_dark')
     fig.update_xaxes(showgrid=False, showticklabels=False, zeroline=False)
     fig.update_yaxes(showgrid=False, showticklabels=False, zeroline=False)
 
-    return fig
+    return apply_figure_theme(fig)
+
+
+def apply_figure_theme(figure: go.Figure) -> go.Figure:
+    """Apply the shared glass theme to Plotly figures."""
+    figure.update_layout(
+        template='plotly_dark',
+        paper_bgcolor='rgba(15, 23, 42, 0.9)',
+        plot_bgcolor='rgba(11, 17, 32, 0.95)',
+        font={'color': '#f8f9fa', 'family': 'Avenir Next, Segoe UI, Trebuchet MS, sans-serif'},
+        legend={
+            'bgcolor': 'rgba(15, 23, 42, 0.9)',
+            'bordercolor': 'rgba(255, 255, 255, 0.2)',
+            'borderwidth': 1,
+            'font': {'color': '#f8f9fa'},
+        },
+        margin={'t': 24, 'l': 16, 'b': 16, 'r': 16},
+        hoverlabel={'bgcolor': '#0f172a', 'font': {'color': '#f8f9fa'}},
+    )
+    figure.update_xaxes(
+        showgrid=True,
+        gridcolor='rgba(255, 255, 255, 0.1)',
+        zeroline=False,
+        linecolor='rgba(255, 255, 255, 0.2)',
+        tickcolor='rgba(255, 255, 255, 0.3)',
+        color='#f8f9fa',
+        rangeslider={
+            'bgcolor': 'rgba(15, 23, 42, 0.6)',
+            'bordercolor': 'rgba(255, 255, 255, 0.2)',
+            'thickness': 0.1,
+        },
+    )
+    figure.update_yaxes(
+        showgrid=True,
+        gridcolor='rgba(255, 255, 255, 0.1)',
+        zeroline=False,
+        linecolor='rgba(255, 255, 255, 0.2)',
+        tickcolor='rgba(255, 255, 255, 0.3)',
+        color='#f8f9fa',
+    )
+
+    return figure
 
 
 def create_filter_results_card(parameters: dict) -> dbc.Card:
@@ -36,11 +77,11 @@ def create_filter_results_card(parameters: dict) -> dbc.Card:
         parameters: dictionary containing the filter information
     """
     card_list = [
-        html.H4("Data filtered", className="card-title"),
+        html.H4('Data filtered', className='card-title'),
     ]
-    card_list += [dbc.Row(f"{data}: {value}", style=styles.INFO_CARD) for data, value in parameters.items()]
+    card_list += [dbc.Row(f'{data}: {value}', style=styles.INFO_CARD) for data, value in parameters.items()]
 
-    return dbc.Card(dbc.CardBody(card_list), id=ids.FILTERING_SAVED_CARD)
+    return dbc.Card(dbc.CardBody(card_list), id=ids.FILTERING_SAVED_CARD, className='glass-card')
 
 
 def create_info_card(dataset: Sequence, remove_button: bool = False) -> dbc.Card:
@@ -50,29 +91,44 @@ def create_info_card(dataset: Sequence, remove_button: bool = False) -> dbc.Card
         dataset: Sequence object containing the selected dataset
         remove_button: add the remove button if set to True
     """
-    info_data = {
-        "Name": dataset.eit_data["raw"].path.name,
-        "n_frames": dataset.eit_data["raw"].nframes,
-        "start_time": dataset.eit_data["raw"].time[0],
-        "end_time": dataset.eit_data["raw"].time[-1],
-        "vendor": dataset.eit_data["raw"].vendor,
-        "continuous signals": str(list(dataset.continuous_data)),
-        "path": str(dataset.eit_data["raw"].path),
-    }
+    vendor_val = getattr(dataset.eit_data['raw'].vendor, 'value', str(dataset.eit_data['raw'].vendor))
+
+    rows = [
+        ('Name', dataset.eit_data['raw'].path.name),
+        ('Frames', dataset.eit_data['raw'].nframes),
+        ('Start time', f"{dataset.eit_data['raw'].time[0]:.3f} s"),
+        ('End time', f"{dataset.eit_data['raw'].time[-1]:.3f} s"),
+        ('Vendor', vendor_val),
+        ('Signals', ', '.join(list(dataset.continuous_data))),
+        ('Path', str(dataset.eit_data['raw'].path)),
+    ]
+
+    table = html.Table(
+        [html.Tbody([
+            html.Tr([
+                html.Td(label, className='info-table__label'),
+                html.Td(str(value), className='info-table__value'),
+            ])
+            for label, value in rows
+        ])],
+        className='info-table',
+    )
 
     card_list = [
-        html.H4(dataset.label, className="card-title"),
-        html.H6(dataset.eit_data["raw"].vendor, className="card-subtitle"),
+        html.H4(dataset.label, className='card-title'),
+        html.Span(vendor_val, className='card-subtitle'),
+        table,
     ]
-    card_list += [dbc.Row(f"{data}: {value}", style=styles.INFO_CARD) for data, value in info_data.items()]
     if remove_button:
         card_list += [
             dbc.Button(
-                "Remove",
-                id={"type": ids.REMOVE_DATA_BUTTON, "index": dataset.label},
+                'Remove',
+                id={'type': ids.REMOVE_DATA_BUTTON, 'index': dataset.label},
+                className='glass-card__action mt-3',
             ),
         ]
-    return dbc.Card(dbc.CardBody(card_list), id=dataset.label)
+    return dbc.Card(dbc.CardBody(card_list), id=dataset.label, className='glass-card')
+
 
 
 def create_selected_period_card(
@@ -90,28 +146,41 @@ def create_selected_period_card(
         index: of the period
         remove_button: add the remove button if set to True
     """
-    info_data = {
-        "n_frames": period.eit_data["raw"].nframes,
-        "start_time": period.eit_data["raw"].time[0],
-        "end_time": period.eit_data["raw"].time[-1],
-        "dataset": dataset,
-    }
+    rows = [
+        ('Frames', period.eit_data['raw'].nframes),
+        ('Start time', f"{period.eit_data['raw'].time[0]:.3f} s"),
+        ('End time', f"{period.eit_data['raw'].time[-1]:.3f} s"),
+        ('Dataset', dataset),
+    ]
+
+    table = html.Table(
+        [html.Tbody([
+            html.Tr([
+                html.Td(label, className='info-table__label'),
+                html.Td(str(value), className='info-table__value'),
+            ])
+            for label, value in rows
+        ])],
+        className='info-table',
+    )
 
     card_list = [
-        html.H4(period.label, className="card-title"),
+        html.H4(period.label, className='card-title'),
+        table,
     ]
-    card_list += [dbc.Row(f"{data}: {value}", style=styles.INFO_CARD) for data, value in info_data.items()]
     if remove_button:
         card_list += [
             dbc.Button(
-                "Remove",
-                id={"type": ids.REMOVE_PERIOD_BUTTON, "index": str(index)},
+                'Remove',
+                id={'type': ids.REMOVE_PERIOD_BUTTON, 'index': str(index)},
+                className='glass-card__action mt-3',
             ),
         ]
 
     return dbc.Card(
         dbc.CardBody(card_list),
-        id={"type": ids.PERIOD_CARD, "index": str(index)},
+        id={'type': ids.PERIOD_CARD, 'index': str(index)},
+        className='glass-card',
     )
 
 
@@ -139,7 +208,7 @@ def create_slider_figure(
             x=dataset.continuous_data[RAW_EIT_LABEL].time,
             y=dataset.continuous_data[RAW_EIT_LABEL].values,
             name=RAW_EIT_LABEL,
-            line={"color": plotly.colors.DEFAULT_PLOTLY_COLORS[0]},
+            line={'color': plotly.colors.DEFAULT_PLOTLY_COLORS[0]},
         ),
     )
     figure.update_yaxes(
@@ -154,55 +223,50 @@ def create_slider_figure(
                     x=dataset.continuous_data[cont_signal].time,
                     y=dataset.continuous_data[cont_signal].values,
                     name=cont_signal,
-                    line={"color": plotly.colors.DEFAULT_PLOTLY_COLORS[n + 1]},
+                    line={'color': plotly.colors.DEFAULT_PLOTLY_COLORS[n + 1]},
                     opacity=0.5,
-                    yaxis=f"y{n + 2}",
+                    yaxis=f'y{n + 2}',
                 ),
             )
-            # decide whether to put the axis left or right
-            side = "right" if n % 2 == 0 else "left"
+            side = 'right' if n % 2 == 0 else 'left'
 
             y_position += 0.1
             new_y = {
-                "title": f"{cont_signal} {dataset.continuous_data[cont_signal].unit}",
-                "anchor": "free",
-                "overlaying": "y",
-                "side": side,
-                "autoshift": True,
-                "color": plotly.colors.DEFAULT_PLOTLY_COLORS[n + 1],
+                'title': f"{cont_signal} {dataset.continuous_data[cont_signal].unit}",
+                'anchor': 'free',
+                'overlaying': 'y',
+                'side': side,
+                'autoshift': True,
+                'color': plotly.colors.DEFAULT_PLOTLY_COLORS[n + 1],
             }
 
-            # layout parameters for multiple y axis
-            param_name = f"yaxis{n + 2}"
+            param_name = f'yaxis{n + 2}'
             params.update({param_name: new_y})
 
-    # add events
-    if hasattr(dataset, "sparse_data"):
+    if hasattr(dataset, 'sparse_data'):
         for key in dataset.sparse_data:
-            if re.match("events", key):
+            if re.match('events', key):
                 for k, v in enumerate(dataset.sparse_data[key].values):
-                    annotation = {"text": f"{v.text}", "textangle": -90}
+                    annotation = {'text': f'{v.text}', 'textangle': -90}
                     figure.add_vline(
                         x=dataset.sparse_data[key].time[k],
                         line_width=3,
-                        line_dash="dash",
-                        line_color="green",
+                        line_dash='dash',
+                        line_color='green',
                         annotation=annotation,
                     )
                 break
 
     figure.update_layout(
-        xaxis={"rangeslider": {"visible": True}},
-        margin={"t": 0, "l": 0, "b": 0, "r": 0},
+        xaxis={'rangeslider': {'visible': True}},
+        margin={'t': 0, 'l': 0, 'b': 0, 'r': 0},
         **params,
     )
 
-    # itemclick is a toggable element, so it can only be deactivated, and it is not possible
-    # to set it to True
     if not clickable_legend:
-        figure.update_layout(legend={"itemclick": False, "itemdoubleclick": False})
+        figure.update_layout(legend={'itemclick': False, 'itemdoubleclick': False})
 
-    return figure
+    return apply_figure_theme(figure)
 
 
 def mark_selected_periods(
@@ -222,18 +286,18 @@ def mark_selected_periods(
 
         for n, cont_signal in enumerate(seq.continuous_data):
             params = {
-                "x": seq.continuous_data[cont_signal].time,
-                "y": seq.continuous_data[cont_signal].values,  # noqa: PD011
-                "name": cont_signal,
-                "meta": {"uid": period.get_period_index()},
-                "line": {"color": "black"},
-                "showlegend": False,
+                'x': seq.continuous_data[cont_signal].time,
+                'y': seq.continuous_data[cont_signal].values,
+                'name': cont_signal,
+                'meta': {'uid': period.get_period_index()},
+                'line': {'color': 'black'},
+                'showlegend': False,
             }
             if cont_signal != RAW_EIT_LABEL:
                 params.update(
                     {
-                        "opacity": 0.5,
-                        "yaxis": f"y{n + 2}",
+                        'opacity': 0.5,
+                        'yaxis': f'y{n + 2}',
                     },
                 )
             selected_signal = go.Scatter(**params).to_plotly_json()
@@ -241,7 +305,7 @@ def mark_selected_periods(
             if isinstance(original_figure, go.Figure):
                 original_figure.add_trace(selected_signal)
             else:
-                original_figure["data"].append(selected_signal)
+                original_figure['data'].append(selected_signal)
 
     return original_figure
 
@@ -261,10 +325,9 @@ def get_signal_options(
     options = []
 
     if dataset.continuous_data:
-        # iterate over continuous data
         for cont in dataset.continuous_data:
             if (cont == RAW_EIT_LABEL and show_eit) or cont != RAW_EIT_LABEL:
-                options.append({"label": cont, "value": len(options)})
+                options.append({'label': cont, 'value': len(options)})
 
     return options
 
@@ -279,12 +342,12 @@ def get_selections_slidebar(slidebar_stat: dict) -> tuple:
         A tuple where the first value is the starting sample and the second value is the
         end sample. If a sample cannot be determined, None is returned.
     """
-    if "xaxis.range" in slidebar_stat:
-        start_sample = slidebar_stat["xaxis.range"][0]
-        stop_sample = slidebar_stat["xaxis.range"][1]
-    elif ("xaxis.range[0]" in slidebar_stat) and ("xaxis.range[1]" in slidebar_stat):
-        start_sample = slidebar_stat["xaxis.range[0]"]
-        stop_sample = slidebar_stat["xaxis.range[1]"]
+    if 'xaxis.range' in slidebar_stat:
+        start_sample = slidebar_stat['xaxis.range'][0]
+        stop_sample = slidebar_stat['xaxis.range'][1]
+    elif ('xaxis.range[0]' in slidebar_stat) and ('xaxis.range[1]' in slidebar_stat):
+        start_sample = slidebar_stat['xaxis.range[0]']
+        stop_sample = slidebar_stat['xaxis.range[1]']
     else:
         start_sample = stop_sample = None
 

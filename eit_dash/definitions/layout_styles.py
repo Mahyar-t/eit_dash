@@ -1,46 +1,24 @@
-BUTTONS_ROW = {"textAlign": "center", "margin-top": "30px"}
-CARD_FOOTER = {"textAlign": "right"}
-CHECKBOX_INPUT = {"margin-right": "10px"}
-COLUMN_TITLE = {"textAlign": "center"}
-EMPTY_ELEMENT = {"display": "none"}
-FILE_BROWSER = {"height": 500, "overflow": "scroll"}
-GRAPH = {}
-INFO_CARD = {"margin-left": 10}
-LOAD_RESULTS = {"textAlign": "center"}
-NEXT_PAGE_BUTTON = {
-    "position": "fixed",
-    "bottom": "35px",
-    "right": "35px",
-    "display": "flex",
-    "align-items": "center",
-    "background": "transparent",
-    "color": "blue",
-    "border": "none",
-    "font-size": "70px",
+BUTTONS_ROW = {'textAlign': 'center', 'marginTop': '1.5rem'}
+CARD_FOOTER = {'textAlign': 'right'}
+CHECKBOX_INPUT = {'marginRight': '10px'}
+COLUMN_TITLE = {
+    'textAlign': 'left',
+    'marginBottom': '0.85rem',
+    'fontWeight': '700',
+    'letterSpacing': '0.08em',
+    'textTransform': 'uppercase',
+    'color': '#f6fbec',
+    'fontSize': '0.92rem',
 }
-NEXT_PAGE_SECTION = {
-    "position": "fixed",
-    "bottom": "7px",
-    "right": "35px",
-    "display": "flex",
-}
-PREV_PAGE_BUTTON = {
-    "position": "fixed",
-    "bottom": "35px",
-    "left": "35px",
-    "display": "flex",
-    "align-items": "center",
-    "background": "transparent",
-    "color": "blue",
-    "border": "none",
-    "font-size": "70px",
-}
-PREV_PAGE_SECTION = {
-    "position": "fixed",
-    "bottom": "7px",
-    "left": "35px",
-    "display": "flex",
-}
-PAGES_LINK = {"fontWeight": "bold", "color": "blue"}
-SUMMARY_ELEMENT = {"textAlign": "center"}
-SECTION_TITLE = {"margin-top": "50px"}
+EMPTY_ELEMENT = {'display': 'none'}
+FILE_BROWSER = {'height': 420, 'overflow': 'auto'}
+GRAPH = {'display': 'block'}
+INFO_CARD = {'marginTop': '0.45rem'}
+LOAD_RESULTS = {'display': 'flex', 'flexDirection': 'column', 'gap': '1rem'}
+NEXT_PAGE_BUTTON = {}
+NEXT_PAGE_SECTION = {}
+PREV_PAGE_BUTTON = {}
+PREV_PAGE_SECTION = {}
+PAGES_LINK = {'textDecoration': 'none'}
+SUMMARY_ELEMENT = {'textAlign': 'center'}
+SECTION_TITLE = {'marginTop': '1.75rem', 'color': '#f6fbec', 'letterSpacing': '0.05em'}

@@ -3,11 +3,7 @@ from dash import dcc, html, register_page
 
 import eit_dash.definitions.element_ids as ids
 import eit_dash.definitions.layout_styles as styles
-from eit_dash.definitions.option_lists import (
-    FilterTypes,
-    PeriodsSelectMethods,
-    SynchMethods,
-)
+from eit_dash.definitions.option_lists import FilterTypes, PeriodsSelectMethods, SynchMethods
 
 register_page(__name__, path="/preprocessing")
 
@@ -17,85 +13,96 @@ resampling_card = html.Div(
             dbc.CardHeader("Resampling"),
             dbc.CardBody(id=ids.RESAMPLING_CARD_BODY),
             dbc.CardFooter(
-                [
-                    dbc.Row(
-                        [
-                            dbc.Col(
-                                [
-                                    dbc.Input(
-                                        type="number",
-                                        placeholder="Resampling frequency",
-                                        value=100,
-                                        id=ids.RESAMPLING_FREQUENCY_INPUT,
-                                    ),
-                                ],
+                dbc.Row(
+                    [
+                        dbc.Col(
+                            dbc.Input(
+                                type="number",
+                                placeholder="Resampling frequency",
+                                value=100,
+                                id=ids.RESAMPLING_FREQUENCY_INPUT,
                             ),
-                            dbc.Col(
-                                [dbc.Button("Apply", id=ids.CONFIRM_RESAMPLING_BUTTON)],
+                        ),
+                        dbc.Col(
+                            dbc.Button(
+                                "Apply",
+                                id=ids.CONFIRM_RESAMPLING_BUTTON,
+                                className="glass-button glass-button--primary w-100",
                             ),
-                        ],
-                    ),
-                ],
+                        ),
+                    ],
+                    className="g-3",
+                ),
                 style=styles.CARD_FOOTER,
             ),
         ],
+        className="mini-card",
     ),
     id=ids.RESAMPLING_CARD,
 )
 
-summary = dbc.Col(
+summary = html.Div(
     [
         html.H2("Summary", style=styles.COLUMN_TITLE),
     ],
+    className="workflow-section workflow-section--feature workflow-section--summary",
     id=ids.SUMMARY_COLUMN,
 )
 
-actions = dbc.Col(
+actions = html.Div(
     [
-        html.H2(
-            "Pre-processing steps",
-            id=ids.PREPROCESING_TITLE,
-            style=styles.COLUMN_TITLE,
+        html.H2("Pre-process", id=ids.PREPROCESING_TITLE, style=styles.COLUMN_TITLE),
+        html.P(
+            "Select the stable periods you want, preview the treatment on top of the raw signal, and confirm only the results you trust.",
+            className="panel-copy",
         ),
         resampling_card,
-        html.P(),
+        html.Div(className="compact-spacer"),
         html.Div(
-            dbc.Row(
-                dbc.Button("Synchronize data", id=ids.OPEN_SYNCH_BUTTON, disabled=True),
+            dbc.Button(
+                "Synchronize data",
+                id=ids.OPEN_SYNCH_BUTTON,
+                disabled=True,
+                className="glass-button glass-button--secondary w-100",
             ),
             hidden=True,
         ),
-        html.P(),
-        dbc.Row(
-            dbc.Button(
-                "Select periods",
-                id=ids.OPEN_SELECT_PERIODS_BUTTON,
-                disabled=False,
-            ),
+        html.Div(className="compact-spacer"),
+        dbc.Button(
+            "Select periods",
+            id=ids.OPEN_SELECT_PERIODS_BUTTON,
+            disabled=False,
+            className="glass-button glass-button--primary w-100",
         ),
-        html.P(),
-        dbc.Row(
-            dbc.Button("Filter data", id=ids.OPEN_FILTER_DATA_BUTTON, disabled=True),
+        html.Div(className="compact-spacer"),
+        dbc.Button(
+            "Filter data",
+            id=ids.OPEN_FILTER_DATA_BUTTON,
+            disabled=True,
+            className="glass-button glass-button--secondary w-100",
         ),
     ],
+    className="workflow-section workflow-section--feature",
 )
 
-results = dbc.Col(
+results = html.Div(
     [
         html.H2("Results", style=styles.COLUMN_TITLE),
-        html.Div(id=ids.PREPROCESING_RESULTS_CONTAINER, style=styles.LOAD_RESULTS),
+        html.Div(
+            [
+                html.Div(id=ids.PREPROCESING_RESULTS_CONTAINER, style=styles.LOAD_RESULTS),
+            ],
+            className="glass-panel--results",
+        ),
     ],
+    className="workflow-section workflow-section--feature workflow-section--results",
 )
 
-# popup for data synchronization
 modal_synchronization = html.Div(
     [
         dbc.Modal(
             [
-                dbc.ModalHeader(
-                    dbc.ModalTitle("Data synchronization"),
-                    close_button=True,
-                ),
+                dbc.ModalHeader(dbc.ModalTitle("Data synchronization"), close_button=True),
                 dbc.ModalBody(
                     [
                         dbc.Select(
@@ -103,18 +110,22 @@ modal_synchronization = html.Div(
                             options=[{"label": method.name, "value": method.value} for method in SynchMethods],
                             value=str(SynchMethods.manual.value),
                         ),
-                        html.P(),
+                        html.Div(className="compact-spacer"),
                         dbc.Row(dbc.Checklist(id=ids.DATASET_SELECTION_CHECKBOX)),
-                        html.P(),
+                        html.Div(className="compact-spacer"),
                         dbc.Row(id=ids.SYNC_DATA_PREVIEW_CONTAINER),
-                        dbc.Button("SYNCH PREVIEW", id=ids.CONFIRM_SYNCH_BUTTON),
+                        dbc.Button(
+                            "Sync Preview",
+                            id=ids.CONFIRM_SYNCH_BUTTON,
+                            className="glass-button glass-button--primary",
+                        ),
                     ],
                 ),
                 dbc.ModalFooter(
                     dbc.Button(
                         "Close",
                         id=ids.SYNCHRONIZATION_CONFIRM_BUTTON,
-                        className="ms-auto",
+                        className="glass-button glass-button--ghost",
                         n_clicks=0,
                     ),
                 ),
@@ -125,33 +136,27 @@ modal_synchronization = html.Div(
             backdrop=False,
             scrollable=True,
             size="xl",
+            className="glass-modal",
         ),
     ],
 )
 
 modal_selection_body = html.Div(
     [
-        dbc.Row(id=ids.PERIODS_SELECTION_SELECT_DATASET),
-        html.P(),
+        html.Div(id=ids.PERIODS_SELECTION_SELECT_DATASET),
+        html.Div(className="compact-spacer"),
         dbc.Row(id=ids.PREPROCESING_SIGNALS_CHECKBOX_ROW),
-        html.P(),
+        html.Div(className="compact-spacer"),
         dcc.Loading(
             html.Div(
                 [
-                    dbc.Row(
-                        [
-                            dcc.Graph(
-                                id=ids.PREPROCESING_PERIODS_GRAPH,
-                                style=styles.EMPTY_ELEMENT,
-                            ),
-                        ],
-                    ),
-                    html.P(),
+                    dbc.Row([dcc.Graph(id=ids.PREPROCESING_PERIODS_GRAPH, style=styles.EMPTY_ELEMENT)]),
                     dbc.Row(
                         [
                             dbc.Button(
                                 "Add selection",
                                 id=ids.PREPROCESING_SELECT_BTN,
+                                className="glass-button glass-button--primary",
                             ),
                         ],
                         style=styles.BUTTONS_ROW,
@@ -172,11 +177,12 @@ modal_selection = html.Div(
                 dbc.ModalHeader(dbc.ModalTitle("Periods selection"), close_button=True),
                 dbc.ModalBody(
                     [
-                        html.H6("Periods selection method"),
+                        html.H6("Periods selection method", className="mb-2"),
                         dbc.Select(
                             id=ids.PERIODS_METHOD_SELECTOR,
                             options=[{"label": method.name, "value": method.value} for method in PeriodsSelectMethods],
                             value=str(PeriodsSelectMethods.Manual.value),
+                            className="mb-3",
                         ),
                         modal_selection_body,
                     ],
@@ -185,7 +191,7 @@ modal_selection = html.Div(
                     dbc.Button(
                         "Confirm",
                         id=ids.PERIODS_CONFIRM_BUTTON,
-                        className="ms-auto",
+                        className="glass-button glass-button--primary",
                         n_clicks=0,
                     ),
                 ),
@@ -196,65 +202,27 @@ modal_selection = html.Div(
             backdrop=False,
             scrollable=True,
             size="xl",
+            className="glass-modal",
         ),
     ],
 )
 
-alert_filter = dbc.Alert(
-    [],
-    id=ids.ALERT_FILTER,
-    color="danger",
-    dismissable=True,
-    is_open=False,
-    duration=3000,
-)
-
-alert_saved_results = dbc.Alert(
-    [],
-    id=ids.ALERT_SAVED_RESULTS,
-    color="success",
-    dismissable=True,
-    is_open=False,
-    duration=3000,
-)
+alert_filter = dbc.Alert([], id=ids.ALERT_FILTER, color="danger", dismissable=True, is_open=False, duration=3000)
+alert_saved_results = dbc.Alert([], id=ids.ALERT_SAVED_RESULTS, color="success", dismissable=True, is_open=False, duration=3000)
 
 filter_params = html.Div(
     [
         dbc.Row(alert_filter),
         dbc.Row(
             [
-                dbc.Col(
-                    [
-                        html.P("Filter Order"),
-                        dbc.Input(id=ids.FILTER_ORDER, type="number", min=0),
-                    ],
-                ),
-                dbc.Col(
-                    [
-                        html.P("Cut off frequency low"),
-                        dbc.Input(id=ids.FILTER_CUTOFF_LOW, type="number", min=0),
-                    ],
-                ),
-                dbc.Col(
-                    [
-                        html.P("Cut off frequency high"),
-                        dbc.Input(id=ids.FILTER_CUTOFF_HIGH, type="number", min=0),
-                    ],
-                ),
+                dbc.Col([html.P("Filter Order"), dbc.Input(id=ids.FILTER_ORDER, type="number", min=0)]),
+                dbc.Col([html.P("Cut off frequency low"), dbc.Input(id=ids.FILTER_CUTOFF_LOW, type="number", min=0)]),
+                dbc.Col([html.P("Cut off frequency high"), dbc.Input(id=ids.FILTER_CUTOFF_HIGH, type="number", min=0)]),
             ],
+            className="g-3",
         ),
         dbc.Row(
-            [
-                dbc.Col(
-                    [
-                        dbc.Button(
-                            "Apply",
-                            id=ids.FILTER_APPLY,
-                            disabled=True,
-                        ),
-                    ],
-                ),
-            ],
+            [dbc.Col([dbc.Button("Apply", id=ids.FILTER_APPLY, disabled=True, className="glass-button glass-button--primary")])],
             style=styles.BUTTONS_ROW,
         ),
         dbc.Row(
@@ -263,10 +231,7 @@ filter_params = html.Div(
                     [
                         html.H6("Select a period to view the results"),
                         dbc.Select(id=ids.FILTERING_SELECT_PERIOD_VIEW),
-                        dcc.Graph(
-                            id=ids.FILTERING_RESULTS_GRAPH,
-                            style=styles.EMPTY_ELEMENT,
-                        ),
+                        dcc.Graph(id=ids.FILTERING_RESULTS_GRAPH, style=styles.EMPTY_ELEMENT),
                     ],
                     id=ids.FILTERING_RESULTS_DIV,
                     hidden=True,
@@ -277,9 +242,7 @@ filter_params = html.Div(
         dbc.Row(
             [
                 html.Div(
-                    [
-                        dbc.Button("Confirm", id=ids.FILTERING_CONFIRM_BUTTON),
-                    ],
+                    [dbc.Button("Confirm", id=ids.FILTERING_CONFIRM_BUTTON, className="glass-button glass-button--primary")],
                     id=ids.FILTERING_CONFIRM_DIV,
                     hidden=True,
                 ),
@@ -304,7 +267,7 @@ modal_filtering = html.Div(
                             id=ids.FILTER_SELECTOR,
                             options=[{"label": filt.name, "value": filt.value} for filt in FilterTypes],
                         ),
-                        html.P(),
+                        html.Div(className="compact-spacer"),
                         filter_params,
                     ],
                 ),
@@ -312,7 +275,7 @@ modal_filtering = html.Div(
                     dbc.Button(
                         "Close",
                         id=ids.FILTERING_CLOSE_BUTTON,
-                        className="ms-auto",
+                        className="glass-button glass-button--ghost",
                         n_clicks=0,
                     ),
                 ),
@@ -324,57 +287,49 @@ modal_filtering = html.Div(
             backdrop=False,
             scrollable=True,
             size="xl",
+            className="glass-modal",
         ),
     ],
 )
 
-layout = dbc.Row(
+layout = html.Div(
     [
-        html.H1("PRE-PROCESSING", style=styles.COLUMN_TITLE),
-        summary,
-        actions,
-        results,
+        html.Div(
+            [
+                html.Div(
+                    [
+                        html.P("Step 2 - Pre-processing", className="page-kicker"),
+                        html.P(
+                            "Narrow each dataset down to the periods that matter and compare your filtering decisions before moving on.",
+                            className="page-intro",
+                        ),
+                    ],
+                    className="page-hero",
+                ),
+                html.Div([summary, actions, results], className="workflow-board"),
+                html.Div(
+                    [
+                        dbc.NavLink(
+                            [html.I(className="fas fa-undo-alt"), html.Span("Back")],
+                            href="/load",
+                            id=ids.PREV_PAGE_LINK_PREP,
+                            className="process-nav-button process-nav-button--back",
+                        ),
+                        dbc.NavLink(
+                            [html.Span("Next"), html.I(className="fas fa-arrow-right")],
+                            href="/analyze",
+                            id=ids.NEXT_PAGE_LINK_PREP,
+                            className="process-nav-button process-nav-button--next",
+                        ),
+                    ],
+                    className="process-footer",
+                ),
+            ],
+            className="stage-card stage-card--preprocess glass-panel",
+        ),
         modal_synchronization,
         modal_selection,
         modal_filtering,
-        html.Div(
-            [
-                dbc.NavLink(
-                    html.Div(
-                        [
-                            dbc.Button(
-                                className="fa fa-arrow-circle-right",
-                                id=ids.NEXT_PAGE_BUTTON_PREP,
-                                style=styles.NEXT_PAGE_BUTTON,
-                            ),
-                        ],
-                    ),
-                    href="/analyze",
-                    id=ids.NEXT_PAGE_LINK_PREP,
-                ),
-                html.Div(
-                    "NEXT PAGE",
-                    style=styles.NEXT_PAGE_SECTION,
-                ),
-            ],
-        ),
-        html.Div(
-            [
-                dbc.NavLink(
-                    dbc.Button(
-                        className="fa fa-arrow-circle-left",
-                        id=ids.PREV_PAGE_BUTTON_PREP,
-                        style=styles.PREV_PAGE_BUTTON,
-                        disabled=False,
-                    ),
-                    href="/",
-                    id=ids.PREV_PAGE_LINK_PREP,
-                ),
-                html.Div(
-                    "PREVIOUS PAGE",
-                    style=styles.PREV_PAGE_SECTION,
-                ),
-            ],
-        ),
     ],
+    className="page-shell",
 )
