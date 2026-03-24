@@ -163,6 +163,7 @@ def load_selected_data(data_path, cancel_load, sig, file_type, fig):
     State(ids.FILE_LENGTH_SLIDER, "relayoutData"),
     State(ids.CHECKBOX_SIGNALS, "value"),
     State(ids.CHECKBOX_SIGNALS, "options"),
+    State(ids.DATASET_NAME_INPUT, "value"),
     prevent_initial_call=True,
 )
 def show_info(
@@ -173,6 +174,7 @@ def show_info(
     slidebar_stat,
     selected_signals,
     signals_options,
+    custom_name,
 ):
     """Creates the preview for preselecting part of the dataset."""
     if file_data:
@@ -188,7 +190,7 @@ def show_info(
             start_sample = file_data.continuous_data[RAW_EIT_LABEL].time[0]
             stop_sample = file_data.continuous_data[RAW_EIT_LABEL].time[-1]
 
-        dataset_name = data_object.get_next_dataset_label()
+        dataset_name = custom_name if custom_name else Path(loaded_data).name
 
         selected_signals = selected_signals or []
         # get the name of the selected continuous signals
@@ -271,14 +273,13 @@ def list_cwd_files(cwd, vendor_type):
             if is_dir or (allowed_ext and extension == allowed_ext):
                 icon = "📂" if is_dir else extension.replace(".", "").upper()
                 icon_class = "browser-icon folder-icon" if is_dir else "browser-icon file-icon-text"
-                item = html.A(
+                item = html.Div(
                     [
                         html.Div(icon, className=icon_class),
                         html.Div(file, className="browser-item-name"),
                     ],
                     id={"type": "listed_file", "index": i},
                     title=str(full_path),
-                    href="#",
                     className="browser-grid-item",
                 )
                 cwd_files.append(item)

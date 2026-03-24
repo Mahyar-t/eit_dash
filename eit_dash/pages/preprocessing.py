@@ -68,18 +68,26 @@ actions = html.Div(
             hidden=True,
         ),
         html.Div(className="compact-spacer"),
-        dbc.Button(
-            "Select periods",
-            id=ids.OPEN_SELECT_PERIODS_BUTTON,
-            disabled=False,
-            className="glass-button glass-button--primary w-100",
-        ),
-        html.Div(className="compact-spacer"),
-        dbc.Button(
-            "Filter data",
-            id=ids.OPEN_FILTER_DATA_BUTTON,
-            disabled=True,
-            className="glass-button glass-button--secondary w-100",
+        dbc.Row(
+            [
+                dbc.Col(
+                    dbc.Button(
+                        "Select periods",
+                        id=ids.OPEN_SELECT_PERIODS_BUTTON,
+                        disabled=False,
+                        className="glass-button glass-button--primary w-100",
+                    ),
+                ),
+                dbc.Col(
+                    dbc.Button(
+                        "Filter data",
+                        id=ids.OPEN_FILTER_DATA_BUTTON,
+                        disabled=True,
+                        className="glass-button glass-button--secondary w-100",
+                    ),
+                ),
+            ],
+            className="g-2",
         ),
     ],
     className="workflow-section workflow-section--feature",
@@ -151,15 +159,12 @@ modal_selection_body = html.Div(
             html.Div(
                 [
                     dbc.Row([dcc.Graph(id=ids.PREPROCESING_PERIODS_GRAPH, style=styles.EMPTY_ELEMENT)]),
-                    dbc.Row(
-                        [
-                            dbc.Button(
-                                "Add selection",
-                                id=ids.PREPROCESING_SELECT_BTN,
-                                className="glass-button glass-button--primary",
-                            ),
-                        ],
-                        style=styles.BUTTONS_ROW,
+                    html.H6("Period name", style=styles.SECTION_TITLE, className="mt-4"),
+                    dbc.Input(
+                        id=ids.PERIOD_NAME_INPUT,
+                        placeholder="Enter period name (optional)...",
+                        type="text",
+                        className="mb-4 glass-input",
                     ),
                 ],
                 id=ids.PERIODS_SELECTION_DIV,
@@ -188,12 +193,21 @@ modal_selection = html.Div(
                     ],
                 ),
                 dbc.ModalFooter(
-                    dbc.Button(
-                        "Confirm",
-                        id=ids.PERIODS_CONFIRM_BUTTON,
-                        className="glass-button glass-button--primary",
-                        n_clicks=0,
-                    ),
+                    [
+                        dbc.Button(
+                            "Add selection",
+                            id=ids.PREPROCESING_SELECT_BTN,
+                            className="glass-button glass-button--secondary w-auto me-2",
+                            size="sm",
+                        ),
+                        dbc.Button(
+                            "Confirm",
+                            id=ids.PERIODS_CONFIRM_BUTTON,
+                            className="glass-button glass-button--primary w-auto",
+                            n_clicks=0,
+                            size="sm",
+                        ),
+                    ],
                 ),
             ],
             id=ids.PERIODS_SELECTION_POPUP,
@@ -300,7 +314,7 @@ layout = html.Div(
                     [
                         html.P("Step 2 - Pre-processing", className="page-kicker"),
                         html.P(
-                            "Narrow each dataset down to the periods that matter and compare your filtering decisions before moving on.",
+                            "Narrow each dataset down to the periods that matter and compare your filtering decisions.",
                             className="page-intro",
                         ),
                     ],

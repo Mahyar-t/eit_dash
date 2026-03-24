@@ -43,12 +43,32 @@ actions = html.Div(
         ),
         html.Div(
             [
-                html.H6("Select a period to view the results"),
-                dbc.Select(id=ids.ANALYZE_SELECT_PERIOD_VIEW, className="w-100", style={"minHeight": "52px", "borderRadius": "16px"}),
+                html.H6("Select a period to view the results", style=styles.SECTION_TITLE, className="mt-4"),
+                dbc.Row(
+                    [
+                        dbc.Col(
+                            dbc.Select(
+                                id=ids.ANALYZE_SELECT_PERIOD_VIEW,
+                                className="w-100",
+                                style={"minHeight": "52px", "borderRadius": "0px"},
+                            ),
+                            width=10,
+                        ),
+                        dbc.Col(
+                            dbc.Button(
+                                "Apply EELI",
+                                id=ids.EELI_APPLY,
+                                disabled=False,
+                                className="glass-button glass-button--primary h-100 w-100",
+                                style={"borderRadius": "0px"},
+                            ),
+                            width=2,
+                        ),
+                    ],
+                    className="g-2",
+                ),
             ],
         ),
-        html.Div(className="compact-spacer"),
-        dbc.Button("Apply EELI", id=ids.EELI_APPLY, disabled=False, className="glass-button glass-button--primary w-100"),
     ],
     className="workflow-section workflow-section--feature",
 )
@@ -61,7 +81,7 @@ layout = html.Div(
                     [
                         html.P("Step 3 - Analyze Data", className="page-kicker"),
                         html.P(
-                            "Review the saved periods, launch the analysis, and inspect the output without losing the sense of flow.",
+                            "Review the saved periods, launch the analysis, and inspect the output.",
                             className="page-intro",
                         ),
                     ],

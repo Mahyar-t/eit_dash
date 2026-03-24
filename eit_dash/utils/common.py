@@ -94,7 +94,7 @@ def create_info_card(dataset: Sequence, remove_button: bool = False) -> dbc.Card
     vendor_val = getattr(dataset.eit_data['raw'].vendor, 'value', str(dataset.eit_data['raw'].vendor))
 
     rows = [
-        ('Name', dataset.eit_data['raw'].path.name),
+        ('Name', dataset.label),
         ('Frames', dataset.eit_data['raw'].nframes),
         ('Start time', f"{dataset.eit_data['raw'].time[0]:.3f} s"),
         ('End time', f"{dataset.eit_data['raw'].time[-1]:.3f} s"),
@@ -116,7 +116,6 @@ def create_info_card(dataset: Sequence, remove_button: bool = False) -> dbc.Card
 
     card_list = [
         html.H4(dataset.label, className='card-title'),
-        html.Span(vendor_val, className='card-subtitle'),
         table,
     ]
     if remove_button:
@@ -147,6 +146,7 @@ def create_selected_period_card(
         remove_button: add the remove button if set to True
     """
     rows = [
+        ('Name', period.label),
         ('Frames', period.eit_data['raw'].nframes),
         ('Start time', f"{period.eit_data['raw'].time[0]:.3f} s"),
         ('End time', f"{period.eit_data['raw'].time[-1]:.3f} s"),

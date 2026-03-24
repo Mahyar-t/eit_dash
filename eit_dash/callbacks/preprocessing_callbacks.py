@@ -302,6 +302,7 @@ def initialize_figure(
     [
         Output(ids.PREPROCESING_PERIODS_GRAPH, "figure", allow_duplicate=True),
         Output(ids.PREPROCESING_RESULTS_CONTAINER, "children", allow_duplicate=True),
+        Output(ids.PERIOD_NAME_INPUT, "value"),
     ],
     [
         Input(ids.PREPROCESING_SELECT_BTN, "n_clicks"),
@@ -313,6 +314,7 @@ def initialize_figure(
         State(ids.PREPROCESING_PERIODS_GRAPH, "relayoutData"),
         State(ids.PREPROCESING_PERIODS_GRAPH, "figure"),
         State(ids.PREPROCESING_RESULTS_CONTAINER, "children"),
+        State(ids.PERIOD_NAME_INPUT, "value"),
     ],
     prevent_initial_call=True,
 )
@@ -324,6 +326,7 @@ def select_period(
     slidebar_stat,
     current_figure,
     current_summary,
+    custom_name,
 ):
     """Mark the selected period in the graph and save it."""
     data = data_object.get_sequence_at(int(dataset))
@@ -344,8 +347,8 @@ def select_period(
     cut_data = data.select_by_time(
         start_time=start_sample,
         end_time=stop_sample,
-        label=f"Period {period_index}",
     )
+    cut_data.label = custom_name if custom_name else f"Period {period_index}"
 
     data_object.add_stable_period(cut_data, int(dataset))
 
@@ -367,7 +370,7 @@ def select_period(
     content = [create_selected_period_card(cut_data, data.label, period_index)]
     current_summary += content
 
-    return current_figure, current_summary
+    return current_figure, current_summary, ""
 
 
 @callback(

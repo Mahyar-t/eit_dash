@@ -65,6 +65,15 @@ app.layout = html.Div(
                     className='app-logo-text',
                     style={"position": "static", "margin": "0"}
                 ),
+                html.Div(
+                    [
+                        html.A("Dashboard", href="/load", id="nav-link-load", className="nav-text-link", style={"background": "transparent", "border": "none"}),
+                        html.A("About us", href="/about", id="nav-link-about", className="nav-text-link", style={"background": "transparent", "border": "none"}),
+                        html.A("Contact us", href="/contact", id="nav-link-contact", className="nav-text-link", style={"background": "transparent", "border": "none"}),
+                    ],
+                    className="d-flex gap-5",
+                    style={"position": "absolute", "left": "50%", "transform": "translateX(-50%)"}
+                ),
             ],
             className="top-navbar",
         ),
@@ -72,23 +81,35 @@ app.layout = html.Div(
         # ── Sidebar ─────────────────────────────────────────────────────────
         dbc.Offcanvas(
             html.Div([
-                html.P("Advanced Electrical Impedance Tomography Dashboard for real-time analysis and data processing.", className="page-intro", style={"fontSize": "1.1rem"}),
+                html.P("Advanced Electrical Impedance Tomography Dashboard for real-time analysis and data processing.", className="page-intro", style={"fontSize": "1rem"}),
                 html.Hr(style={"borderColor": "rgba(0,0,0,0.1)", "margin": "1.5rem 0"}),
-                dbc.Button(
+                html.A(
                     [html.I(className="fas fa-chart-line", style={"marginRight": "10px"}), "Dashboard"],
                     href="/load",
                     id="sidebar-dashboard-link",
-                    className="glass-button glass-button--primary w-100 mb-4",
-                    style={"textAlign": "left", "padding": "12px 20px", "fontSize": "1.1rem"}
+                    className="sidebar-nav-link text-decoration-none w-100 mb-3 d-block",
                 ),
-                html.P("Loaded datasets and selections will appear across all modules as you progress through the tab steps.", className="page-intro", style={"fontSize": "0.95rem", "opacity": "0.8"})
+                html.A(
+                    [html.I(className="fas fa-info-circle", style={"marginRight": "10px"}), "About us"],
+                    href="/about",
+                    id="sidebar-about-link",
+                    className="sidebar-nav-link text-decoration-none w-100 mb-3 d-block",
+                ),
+                html.A(
+                    [html.I(className="fas fa-envelope", style={"marginRight": "10px"}), "Contact us"],
+                    href="/contact",
+                    id="sidebar-contact-link",
+                    className="sidebar-nav-link text-decoration-none w-100 mb-4 d-block",
+                ),
+                # html.P("Loaded datasets and selections will appear across all modules as you progress through the tab steps.", className="page-intro", style={"fontSize": "1rem", "opacity": "0.8", "textAlign": "justify"})
             ]),
             id="main-sidebar",
             title="Welcome to EIT-ALIVE",
             is_open=False,
             placement="start",
             className="glass-panel",
-            style={"width": "280px", "backgroundColor": "rgba(255, 255, 255, 0.45)", "backdropFilter": "blur(28px)", "borderRight": "1px solid var(--card-border)", "borderRadius": "0"}
+            style={"width": "336px", "backgroundColor": "rgba(255, 255, 255, 0.2)", "backdropFilter": "blur(10px)", "WebkitBackdropFilter": "blur(10px)", "border": "1px solid rgba(126, 126, 126, 0.1)", "borderRadius": "0"},
+            backdrop=False,
         ),
 
         # ── Main content (tabs + pages) ─────────────────────────────────────
@@ -100,7 +121,7 @@ app.layout = html.Div(
                             [
                                 html.H1('EIT Dashboard', id='test-id', className='app-title'),
                                 html.P(
-                                    'A cleaner local workflow for loading, preparing, and analyzing EIT data.',
+                                    'A local workflow for loading, preparing, and analyzing EIT data. \n Loaded datasets and selections will appear across all modules as you progress through the tab steps.',
                                     className='app-subtitle',
                                 ),
                             ],
@@ -131,7 +152,7 @@ app.layout = html.Div(
     Input('url', 'pathname'),
 )
 def toggle_shell_visibility(pathname):
-    if pathname == '/':
+    if pathname in ['/', '/about', '/contact']:
         return {'display': 'none'}
     return {'display': 'block'}
 
@@ -145,6 +166,34 @@ def toggle_shell_visibility(pathname):
 )
 def toggle_sidebar(n1, n2, is_open):
     return not is_open
+
+
+@callback(
+    [
+        Output('nav-link-load', 'className'),
+        Output('nav-link-about', 'className'),
+        Output('nav-link-contact', 'className'),
+        Output('sidebar-dashboard-link', 'className'),
+        Output('sidebar-about-link', 'className'),
+        Output('sidebar-contact-link', 'className'),
+    ],
+    Input('url', 'pathname'),
+)
+def update_nav_active_class(pathname):
+    dashboard_active = pathname in ["/load", "/preprocessing", "/analyze"]
+    about_active = pathname == "/about"
+    contact_active = pathname == "/contact"
+
+    n_cls = lambda active, base: f"{base} active" if active else base
+
+    return (
+        n_cls(dashboard_active, "nav-text-link"),
+        n_cls(about_active, "nav-text-link"),
+        n_cls(contact_active, "nav-text-link"),
+        n_cls(dashboard_active, "sidebar-nav-link text-decoration-none w-100 mb-3 d-block"),
+        n_cls(about_active, "sidebar-nav-link text-decoration-none w-100 mb-3 d-block"),
+        n_cls(contact_active, "sidebar-nav-link text-decoration-none w-100 mb-4 d-block"),
+    )
 
 
 if __name__ == '__main__':

@@ -79,7 +79,7 @@ a {
   gap: 18px;
   padding: 0 28px;
   background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(5px);
+  backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(32px);
   border-bottom: 1px solid rgba(126, 126, 126, 0.3);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
@@ -93,14 +93,19 @@ a {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 1.2rem;
-  font-weight: 900;
-  letter-spacing: 0.1em;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--ink);
+  color: #ffffff;
   text-decoration: none;
-  opacity: 0.85;
-  transition: all 240ms ease;
+  opacity: 0.9;
+  text-shadow:
+    0 0 8px rgba(255, 255, 255, 0.3),
+    0 0 20px rgba(255, 255, 255, 0.2);
+  filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.1));
+  transition: all 100ms ease;
   z-index: 100;
 }
 
@@ -112,14 +117,70 @@ a {
 
 .app-logo-text:hover {
   opacity: 1;
-  transform: translateY(-1px);
+  transform: scale(1.05);
+  text-shadow:
+    0 0 12px rgba(255, 255, 255, 0.3),
+    0 0 30px rgba(255, 255, 255, 0.2);
+}
+
+.nav-text-link {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #ffffff;
+  text-decoration: none;
+  opacity: 0.9;
+  text-shadow:
+    0 0 8px rgba(255, 255, 255, 0.3),
+    0 0 20px rgba(255, 255, 255, 0.2);
+  filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.1));
+  transition: all 100ms ease;
+  z-index: 100;
+}
+
+.nav-text-link:hover {
+  opacity: 1;
+  transform: scale(1.05);
+  text-shadow:
+    0 0 12px rgba(255, 255, 255, 0.3),
+    0 0 30px rgba(255, 255, 255, 0.2);
+}
+
+.nav-text-link.active {
+  opacity: 1;
+  transform: scale(1.05);
+  text-shadow:
+    0 0 5px rgba(255, 255, 255, 1),
+    0 0 10px rgba(255, 255, 255, 0.8);
+  filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.2));
+}
+
+/* ── Sidebar Nav Links ─────────────────────────────────────────── */
+.sidebar-nav-link {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #000000 !important;
+  opacity: 0.7;
+  transition: all 150ms ease;
+  border-radius: 0;
+}
+
+.sidebar-nav-link:hover,
+.sidebar-nav-link.active {
+  opacity: 1;
+  transform: translateX(8px);
+  text-shadow: 0 0 10px rgba(255, 255, 255, 1);
+  background: transparent !important;
 }
 
 .app-header {
   display: grid;
   gap: 1rem;
   padding: 1.5rem;
-  border-radius: 28px;
+  border-radius: 0;
   border: 1px solid var(--card-border);
   background: var(--card-fill-strong);
   box-shadow: var(--shadow);
@@ -181,7 +242,7 @@ a {
   flex: 0.5 1 0;
   min-height: 43px;
   padding: 0.54rem 1.35rem;
-  border-radius: 20px 20px 0 0;
+  border-radius: 0;
   border: 1px solid var(--card-border);
   background: var(--card-fill);
   box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04);
@@ -195,7 +256,6 @@ a {
 .process-tab:hover,
 .process-tab:focus {
   color: var(--ink);
-  background: var(--card-fill-strong);
 }
 
 .process-tab.active {
@@ -206,7 +266,7 @@ a {
   color: var(--ink);
   transform: none;
   box-shadow: 0 -10px 20px rgba(0, 0, 0, 0.1);
-  border-radius: 26px 26px 0 0;
+  border-radius: 0;
   border-bottom: 1px solid transparent;
   border-right: 1px solid var(--card-border);
   border-left: 1px solid var(--card-border);
@@ -242,7 +302,7 @@ a {
   justify-content: center;
   width: 42px;
   height: 42px;
-  border-radius: 999px;
+  border-radius: 0;
   color: rgba(0, 0, 0, 0.8);
   background: rgba(240, 243, 189, 0.32);
   border: 1px solid rgba(5, 102, 141, 0.12);
@@ -307,7 +367,7 @@ a {
 .glass-panel {
   width: 100%;
   padding: 1.4rem;
-  border-radius: 0 26px 26px 26px;
+  border-radius: 0;
   border: 1px solid var(--card-border);
   background: var(--card-fill-strong);
   box-shadow: var(--shadow);
@@ -329,7 +389,7 @@ a {
 .glass-panel--results {
   margin-top: 1rem;
   padding: 1.5rem;
-  border-radius: 16px;
+  border-radius: 0;
   background: rgba(255, 255, 255, 0.35);
   border: 1px solid rgba(255, 255, 255, 0.6);
   box-shadow: 0 12px 24px rgba(var(--ocean-1-rgb), 0.1);
@@ -436,13 +496,24 @@ a {
 .form-control,
 .form-select {
   min-height: 52px;
-  border-radius: 16px;
+  border-radius: 0;
   border: 1px solid rgba(255, 255, 255, 0.6);
   background-color: rgba(255, 255, 255, 0.35);
   color: var(--ink);
   box-shadow: 0 12px 24px rgba(var(--ocean-1-rgb), 0.1);
   backdrop-filter: blur(14px);
   transition: all 160ms ease;
+}
+
+.glass-input {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  color: #000000 !important;
+}
+
+.glass-input:focus {
+  background: rgba(255, 255, 255, 0.25) !important;
+  border-color: rgba(255, 255, 255, 0.6) !important;
 }
 
 .form-select {
@@ -461,7 +532,6 @@ a {
 .form-control:focus,
 .form-select:focus {
   border-color: rgba(255, 255, 255, 0.8);
-  background-color: rgba(var(--ocean-3-rgb), 0.25);
   box-shadow: 0 16px 30px rgba(var(--ocean-1-rgb), 0.12);
   color: var(--ink);
 }
@@ -482,7 +552,7 @@ a {
   justify-content: center;
   gap: 0.6rem;
   min-height: 52px;
-  border-radius: 16px;
+  border-radius: 0;
   border: 1px solid var(--card-border);
   font-weight: 700;
   letter-spacing: 0.03em;
@@ -506,7 +576,6 @@ a {
 .btn:not(.btn-close):hover,
 .process-nav-button:hover {
   transform: translateY(-1px);
-  background: rgba(var(--ocean-3-rgb), 0.25);
   box-shadow: 0 16px 30px rgba(var(--ocean-1-rgb), 0.12);
 }
 
@@ -556,7 +625,7 @@ a {
 .browser-path {
   margin-bottom: 1rem;
   padding: 0.85rem 1rem;
-  border-radius: 16px;
+  border-radius: 0;
   background: rgba(0, 0, 0, 0.16);
 }
 
@@ -577,16 +646,16 @@ a {
   padding: 1rem 0.5rem;
   background: rgba(255, 255, 255, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.4);
-  border-radius: 16px;
+  border-radius: 0;
   text-decoration: none;
   color: var(--ink);
   text-align: center;
-  transition: all 160ms ease;
+  transition: none;
   backdrop-filter: blur(8px);
+  cursor: pointer;
 }
 
 .browser-grid-item:hover {
-  background: rgba(255, 255, 255, 0.45);
   transform: translateY(-2px);
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
 }
@@ -608,7 +677,7 @@ a {
   color: var(--ocean-1);
   background: rgba(0, 119, 182, 0.15); /* ocean-2 */
   padding: 0.6rem 0.8rem;
-  border-radius: 8px;
+  border-radius: 0;
   min-width: 58px;
   line-height: 1;
   margin-bottom: 0.25rem;
@@ -629,7 +698,7 @@ a {
 }
 
 .modal-content {
-  border-radius: 26px;
+  border-radius: 0;
   border: 1px solid var(--card-border);
   background: var(--card-fill-strong);
   color: var(--ink);
@@ -642,7 +711,7 @@ a {
 }
 
 .alert {
-  border-radius: 16px;
+  border-radius: 0;
   border: 1px solid rgba(255, 255, 255, 0.18);
 }
 
@@ -678,7 +747,7 @@ a {
   .app-header,
   .glass-panel {
     padding: 1.1rem;
-    border-radius: 22px;
+    border-radius: 0;
   }
 
   .process-stepper {
@@ -715,6 +784,65 @@ a {
   }
 }
 
+/* ── Page transition animations ─────────────────────────────────── */
+/* 
+   We use overlay pseudo-elements with the fixed background image to crossfade the view.
+   This approach never modifies the opacity or transform of the content itself, preserving
+   stacking contexts and completely saving backdrop-filter/glassmorphism from jitter bugs.
+*/
+
+.app-shell::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: url("/assets/bg.png") no-repeat center center fixed;
+  background-size: cover;
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 350ms ease-in-out;
+}
+
+.app-page-wrapper {
+  position: relative;
+}
+
+.app-page-wrapper::after {
+  content: "";
+  position: absolute;
+  inset: -20px; /* Slight bleed to cover shadows */
+  background: url("/assets/bg.png") no-repeat center center fixed;
+  background-size: cover;
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 250ms ease-in-out;
+}
+
+/* Full Page transitions */
+.page-fading-out::after {
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 250ms ease-in-out;
+}
+.page-rendering::after {
+  opacity: 1;
+  pointer-events: auto;
+  transition: none !important;
+}
+
+/* Tab transitions */
+.tab-fading-out .app-page-wrapper::after {
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 200ms ease-in-out;
+}
+.tab-rendering .app-page-wrapper::after {
+  opacity: 1;
+  pointer-events: auto;
+  transition: none !important;
+}
+
 /* Index Page Styles */
 .index-shell {
   display: flex;
@@ -727,7 +855,7 @@ a {
   text-align: center;
   max-width: 800px;
   padding: 4rem 2rem;
-  border-radius: 40px;
+  border-radius: 0;
   background: var(--card-fill);
   backdrop-filter: blur(30px);
   border: 1px solid var(--card-border);
@@ -755,7 +883,7 @@ a {
 .index-launch-btn {
   padding: 1.2rem 3rem !important;
   font-size: 1.25rem !important;
-  border-radius: 24px !important;
+  border-radius: 0 !important;
 }
 
 .app-footer {
@@ -773,10 +901,11 @@ a {
 }
 
 .app-footer span {
+  font-family: "JetBrains Mono", monospace !important;
   color: #ffffff !important;
   font-size: 0.9rem !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.04em;
+  font-weight: 300 !important;
+  letter-spacing: 0.1em;
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 }
 

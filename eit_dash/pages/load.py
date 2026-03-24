@@ -40,47 +40,52 @@ input_type_selector = html.Div(
     className="action-stack mt-3",
 )
 
-add_data_selector = dcc.Loading(
-    html.Div(
-        id=ids.DATA_SELECTOR_OPTIONS,
-        hidden=True,
-        children=[
-            html.H5("Pre-selection", style={**styles.SECTION_TITLE, "marginTop": "0.1rem"}),
-            dcc.Graph(id=ids.FILE_LENGTH_SLIDER),
-            html.H5("Signal selections", style=styles.SECTION_TITLE, className="mt-4"),
-            dbc.Row(
-                dcc.Checklist(
-                    id=ids.CHECKBOX_SIGNALS,
-                    inputStyle=styles.CHECKBOX_INPUT,
-                    className="signal-checklist",
+add_data_selector = html.Div(
+    id=ids.DATA_SELECTOR_OPTIONS,
+    hidden=True,
+    children=[
+        html.H5("Pre-selection", style={**styles.SECTION_TITLE, "marginTop": "0.1rem"}),
+        dcc.Graph(id=ids.FILE_LENGTH_SLIDER),
+        html.H5("Signal selections", style=styles.SECTION_TITLE, className="mt-4"),
+        dbc.Row(
+            dcc.Checklist(
+                id=ids.CHECKBOX_SIGNALS,
+                inputStyle=styles.CHECKBOX_INPUT,
+                className="signal-checklist",
+            ),
+        ),
+        html.H5("Dataset name", style=styles.SECTION_TITLE, className="mt-4"),
+        dbc.Input(
+            id=ids.DATASET_NAME_INPUT,
+            placeholder="Enter dataset name (optional)...",
+            type="text",
+            className="mb-4 glass-input",
+        ),
+        dbc.Row(
+            [
+                dbc.Col(
+                    dbc.Button(
+                        "Cancel",
+                        id=ids.LOAD_CANCEL_BUTTON,
+                        className="glass-button glass-button--ghost w-100",
+                        color="danger",
+                        n_clicks=0,
+                    ),
                 ),
-            ),
-            dbc.Row(
-                [
-                    dbc.Col(
-                        dbc.Button(
-                            "Cancel",
-                            id=ids.LOAD_CANCEL_BUTTON,
-                            className="glass-button glass-button--ghost w-100",
-                            color="danger",
-                            n_clicks=0,
-                        ),
+                dbc.Col(
+                    dbc.Button(
+                        "Confirm",
+                        id=ids.LOAD_CONFIRM_BUTTON,
+                        className="glass-button glass-button--primary w-100",
+                        color="success",
+                        n_clicks=0,
                     ),
-                    dbc.Col(
-                        dbc.Button(
-                            "Confirm",
-                            id=ids.LOAD_CONFIRM_BUTTON,
-                            className="glass-button glass-button--primary w-100",
-                            color="success",
-                            n_clicks=0,
-                        ),
-                    ),
-                ],
-                style=styles.BUTTONS_ROW,
-                className="g-3",
-            ),
-        ],
-    ),
+                ),
+            ],
+            style=styles.BUTTONS_ROW,
+            className="g-3",
+        ),
+    ],
 )
 
 results = html.Div(
@@ -143,9 +148,7 @@ alert_load = dbc.Alert(
 
 modal_dialog = html.Div(
     [
-        dcc.Loading(
-            [
-                dbc.Modal(
+        dbc.Modal(
                     [
                         dbc.ModalHeader(dbc.ModalTitle("Select a file"), close_button=True),
                         dbc.ModalBody([alert_load, file_browser]),
@@ -155,11 +158,10 @@ modal_dialog = html.Div(
                     is_open=False,
                     backdrop=False,
                     scrollable=True,
+                    fade=False,
                     className="glass-modal",
                     size="xl",
                 ),
-            ],
-        ),
     ],
 )
 

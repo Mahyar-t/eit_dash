@@ -13,7 +13,8 @@ logging.getLogger("werkzeug").setLevel(logging.ERROR)
 # it is initialized here, and imported by the callbacks pages when needed
 data_object = data_singleton.get_singleton()
 FONT_AWESOME = "https://use.fontawesome.com/releases/v5.13.0/css/all.css"
-external_stylesheets = [dbc.themes.BOOTSTRAP, FONT_AWESOME]
+JETBRAINS_MONO = "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;700;800;900&display=swap"
+external_stylesheets = [dbc.themes.BOOTSTRAP, FONT_AWESOME, JETBRAINS_MONO]
 app = Dash(
     __name__,
     use_pages=True,
