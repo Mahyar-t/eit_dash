@@ -76,10 +76,33 @@ def create_filter_results_card(parameters: dict) -> dbc.Card:
     Args:
         parameters: dictionary containing the filter information
     """
+    rows = [
+        ('Filter type', parameters.get('filter_type', '')),
+        ('Cutoff frequency', parameters.get('cutoff_frequency', '')),
+        ('Order', parameters.get('order', '')),
+        ('Sample frequency', parameters.get('sample_frequency', '')),
+    ]
+
+    table = html.Table(
+        [html.Tbody([
+            html.Tr([
+                html.Td(label, className='info-table__label'),
+                html.Td(str(value), className='info-table__value'),
+            ])
+            for label, value in rows
+        ])],
+        className='info-table',
+    )
+
     card_list = [
         html.H4('Data filtered', className='card-title'),
+        table,
+        dbc.Button(
+            'Remove',
+            id=ids.REMOVE_FILTER_BUTTON,
+            className='glass-card__action mt-3',
+        ),
     ]
-    card_list += [dbc.Row(f'{data}: {value}', style=styles.INFO_CARD) for data, value in parameters.items()]
 
     return dbc.Card(dbc.CardBody(card_list), id=ids.FILTERING_SAVED_CARD, className='glass-card')
 

@@ -745,6 +745,36 @@ def save_filtered_signal(confirm, results: list):
     return results, True, "Results have been saved"
 
 
+@callback(
+    Output(ids.PREPROCESING_RESULTS_CONTAINER, "children", allow_duplicate=True),
+    Input(ids.REMOVE_FILTER_BUTTON, "n_clicks"),
+    State(ids.PREPROCESING_RESULTS_CONTAINER, "children"),
+    prevent_initial_call=True,
+)
+def remove_filtered_signal(n_clicks, results: list):
+    """Remove the saved filtered signal from all stable periods and from the results card."""
+    if not n_clicks:
+        raise PreventUpdate
+
+    tmp_results.clear_data()
+
+    for period in data_object.get_all_stable_periods():
+        data = period.get_data()
+        if data.continuous_data.get(FILTERED_EIT_LABEL):
+            data.continuous_data.pop(FILTERED_EIT_LABEL)
+
+    filtered_results = []
+    for element in results or []:
+        try:
+            if element["props"]["id"] == ids.FILTERING_SAVED_CARD:
+                continue
+        except (KeyError, TypeError):
+            pass
+        filtered_results.append(element)
+
+    return filtered_results
+
+
 def get_selected_parameters(co_high, co_low, order, filter_selected) -> dict:
     """Build the parameters dictionary for the filter.
 
