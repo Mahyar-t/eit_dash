@@ -1,4 +1,8 @@
 :root {
+  --navbar-height: 65px;
+  --navbar-shell-offset: 88px;
+  --navbar-shell-offset-hidden: 24px;
+  --footer-bottom-offset: max(0px, env(safe-area-inset-bottom));
   --ocean-1: #03045e;
   --ocean-2: #0077b6;
   --ocean-3: #00b4d8;
@@ -26,6 +30,13 @@
   color: #000000;
 }
 
+img,
+svg,
+canvas {
+  max-width: 100%;
+  height: auto;
+}
+
 h1,
 h2,
 h3,
@@ -48,22 +59,35 @@ body,
 
 body {
   margin: 0;
+  min-height: 100dvh;
   color: var(--text);
   font-family: "Avenir Next", "Segoe UI", "Trebuchet MS", sans-serif;
   background: url("/assets/bg.png") no-repeat center center fixed;
   background-size: cover;
+  overflow-x: hidden;
 }
 
 a {
   color: inherit;
 }
 
-.app-shell {
-  width: min(1380px, calc(100% - 32px));
-  margin: 88px auto 0;
+.app-root {
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - 88px);
+}
+
+.app-shell {
+  width: min(1380px, calc(100% - clamp(20px, 3vw, 32px)));
+  margin: var(--navbar-shell-offset) auto 0;
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 auto;
+  min-height: calc(100dvh - var(--navbar-shell-offset));
+  min-width: 0;
+  transition:
+    margin-top 220ms ease,
+    min-height 220ms ease;
 }
 
 /* ── Full-width glass top navbar ───────────────────────────────── */
@@ -73,7 +97,7 @@ a {
   left: 0;
   right: 0;
   width: 100%;
-  height: 65px;
+  height: var(--navbar-height);
   display: flex;
   align-items: center;
   gap: 18px;
@@ -84,6 +108,25 @@ a {
   border-bottom: 1px solid rgba(126, 126, 126, 0.3);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
   z-index: 500;
+  transform: translateY(0);
+  opacity: 1;
+  transition:
+    transform 220ms ease,
+    opacity 220ms ease,
+    box-shadow 220ms ease;
+  will-change: transform, opacity;
+}
+
+body.navbar-hidden .top-navbar {
+  transform: translateY(calc(-100% - 12px));
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: none;
+}
+
+body.navbar-hidden .app-shell {
+  margin-top: var(--navbar-shell-offset-hidden);
+  min-height: calc(100dvh - var(--navbar-shell-offset-hidden));
 }
 
 .app-logo-text {
@@ -157,6 +200,18 @@ a {
   filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.2));
 }
 
+.top-navbar__links {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(1.25rem, 3vw, 3rem);
+  max-width: calc(100vw - 320px);
+  white-space: nowrap;
+}
+
 /* ── Sidebar Nav Links ─────────────────────────────────────────── */
 .sidebar-nav-link {
   font-family: "JetBrains Mono", monospace;
@@ -225,12 +280,13 @@ a {
   display: flex;
   gap: 2px;
   align-items: flex-end;
-  height: 54px;
+  height: auto;
   margin-top: 0;
   margin-bottom: -1px;
   position: relative;
   z-index: 10;
-  width: 45%;
+  width: min(100%, 760px);
+  max-width: 100%;
 }
 
 .process-tab {
@@ -314,11 +370,13 @@ a {
   position: relative;
   z-index: 1;
   flex-grow: 1;
+  min-width: 0;
 }
 
 .page-shell {
   display: grid;
   gap: 1.2rem;
+  min-width: 0;
 }
 
 .stage-card {
@@ -372,6 +430,7 @@ a {
   background: var(--card-fill-strong);
   box-shadow: var(--shadow);
   backdrop-filter: blur(24px);
+  min-width: 0;
 }
 
 .glass-panel--hero {
@@ -399,6 +458,7 @@ a {
 .workflow-board {
   padding: 0;
   overflow: hidden;
+  min-width: 0;
 }
 
 .workflow-section {
@@ -719,6 +779,8 @@ a {
 .dash-graph {
   border-radius: 0;
   overflow: hidden;
+  width: 100%;
+  min-width: 0;
 }
 
 .process-footer {
@@ -741,18 +803,46 @@ a {
 @media (max-width: 992px) {
   .app-shell {
     width: min(100% - 20px, 100%);
-    margin: 10px auto 24px;
+    margin: calc(var(--navbar-height) + 18px) auto 0;
+    min-height: calc(100dvh - (var(--navbar-height) + 18px));
+  }
+
+  body.navbar-hidden .app-shell {
+    margin-top: 18px;
+    min-height: calc(100dvh - 18px);
+  }
+
+  .top-navbar {
+    gap: 12px;
+    padding: 0 16px;
+  }
+
+  .top-navbar__links {
+    display: none;
+  }
+
+  .app-logo-text {
+    gap: 8px;
+    font-size: 0.92rem;
+    letter-spacing: 0.04em;
+  }
+
+  .app-logo-img {
+    height: 42px;
   }
 
   .app-header,
-  .glass-panel {
+  .glass-panel,
+  .workflow-section,
+  .page-hero {
     padding: 1.1rem;
-    border-radius: 0;
   }
 
   .process-stepper {
     flex-direction: column;
     align-items: stretch;
+    width: 100%;
+    margin-bottom: 0.75rem;
   }
 
   .process-tab-arrow {
@@ -762,6 +852,7 @@ a {
   .process-tab,
   .process-tab.active {
     flex: 1 1 auto;
+    width: 100%;
     min-height: 68px;
     transform: none;
   }
@@ -781,6 +872,57 @@ a {
 
   .process-nav-button {
     width: 100%;
+  }
+}
+
+@media (max-width: 576px) {
+  .app-shell {
+    width: calc(100% - 16px);
+  }
+
+  .top-navbar {
+    height: 60px;
+    padding: 0 12px;
+  }
+
+  .app-logo-text {
+    font-size: 0.84rem;
+  }
+
+  .app-logo-img {
+    height: 36px;
+  }
+
+  .app-title {
+    font-size: 1.3rem;
+  }
+
+  .app-subtitle,
+  .page-intro,
+  .panel-copy,
+  .empty-panel-copy {
+    font-size: 0.95rem;
+    line-height: 1.45;
+  }
+
+  .process-tab,
+  .process-tab.active {
+    min-height: 60px;
+    padding: 0.8rem 1rem;
+  }
+
+  .process-tab-label,
+  .process-tab.active .process-tab-label {
+    font-size: 0.95rem;
+    letter-spacing: 0.03em;
+    white-space: normal;
+  }
+
+  .workflow-section,
+  .glass-panel,
+  .app-header,
+  .page-hero {
+    padding: 0.95rem;
   }
 }
 
@@ -887,17 +1029,18 @@ a {
 }
 
 .app-footer {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 0.75rem 1.5rem;
-  z-index: 200;
+  width: 100%;
+  flex-shrink: 0;
+  margin-top: auto;
+  padding: 0.75rem 1.5rem calc(0.75rem + var(--footer-bottom-offset));
+  z-index: 50;
   pointer-events: none;
+  opacity: 1;
+  transition: opacity 220ms ease;
 }
 
 .app-footer span {
@@ -914,4 +1057,38 @@ a {
   width: auto;
   filter: brightness(10);
   opacity: 0.9;
+}
+
+@media (max-width: 992px) {
+  .app-footer {
+    gap: 8px;
+    padding: 0.65rem 1rem;
+  }
+
+  .app-footer span {
+    font-size: 0.78rem !important;
+    letter-spacing: 0.06em;
+    text-align: center;
+  }
+
+  .footer-logo {
+    height: 18px;
+  }
+}
+
+@media (max-width: 576px) {
+  .app-footer {
+    flex-wrap: wrap;
+    row-gap: 4px;
+    padding: 0.55rem 0.75rem;
+  }
+
+  .app-footer span {
+    font-size: 0.7rem !important;
+    line-height: 1.35;
+  }
+
+  .footer-logo {
+    height: 16px;
+  }
 }

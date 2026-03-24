@@ -71,10 +71,10 @@ app.layout = html.Div(
                         html.A("About us", href="/about", id="nav-link-about", className="nav-text-link", style={"background": "transparent", "border": "none"}),
                         html.A("Contact us", href="/contact", id="nav-link-contact", className="nav-text-link", style={"background": "transparent", "border": "none"}),
                     ],
-                    className="d-flex gap-5",
-                    style={"position": "absolute", "left": "50%", "transform": "translateX(-50%)"}
+                    className="top-navbar__links",
                 ),
             ],
+            id="top-navbar",
             className="top-navbar",
         ),
 
@@ -112,38 +112,44 @@ app.layout = html.Div(
             backdrop=False,
         ),
 
-        # ── Main content (tabs + pages) ─────────────────────────────────────
         html.Div(
             [
+                # ── Main content (tabs + pages) ─────────────────────────────
                 html.Div(
                     [
                         html.Div(
                             [
-                                html.H1('EIT Dashboard', id='test-id', className='app-title'),
-                                html.P(
-                                    'A local workflow for loading, preparing, and analyzing EIT data. \n Loaded datasets and selections will appear across all modules as you progress through the tab steps.',
-                                    className='app-subtitle',
+                                html.Div(
+                                    [
+                                        html.H1('EIT Dashboard', id='test-id', className='app-title'),
+                                        html.P(
+                                            'A local workflow for loading, preparing, and analyzing EIT data. \n Loaded datasets and selections will appear across all modules as you progress through the tab steps.',
+                                            className='app-subtitle',
+                                        ),
+                                    ],
+                                    className='app-brand',
                                 ),
                             ],
-                            className='app-brand',
+                            className='app-header',
                         ),
+                        process_stepper,
                     ],
-                    className='app-header',
+                    id='dashboard-shell',
                 ),
-                process_stepper,
+                html.Div(page_container, className='app-page-wrapper'),
             ],
-            id='dashboard-shell',
+            className='app-shell',
         ),
-        html.Div(page_container, className='app-page-wrapper'),
         html.Footer(
             [
                 html.Img(src='/assets/logo.png', className='footer-logo'),
                 html.Span("© 2026 ROTARC Research Group. All Rights Reserved."),
             ],
+            id="app-footer",
             className="app-footer"
         ),
     ],
-    className='app-shell',
+    className='app-root',
 )
 
 
