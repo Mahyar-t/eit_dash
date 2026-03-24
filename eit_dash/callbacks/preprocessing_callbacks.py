@@ -25,8 +25,10 @@ from eit_dash.utils.common import (
     get_selections_slidebar,
     get_signal_options,
     mark_selected_periods,
+    update_figure_signal_visibility,
 )
 from eit_dash.utils.data_singleton import LoadedData
+from eit_dash.utils.time_axis import build_time_axis_context
 
 if TYPE_CHECKING:
     from eitprocessing.datahandling.sequence import Sequence
@@ -34,6 +36,19 @@ if TYPE_CHECKING:
 tmp_results: LoadedData = LoadedData()
 
 # ruff: noqa: D103  #TODO remove this line when finalizing this module
+
+
+def _get_signal_start_time(sequence: Sequence, signal_label: str = RAW_EIT_LABEL) -> float:
+    """Return the start timestamp for a sequence signal."""
+    return float(sequence.continuous_data[signal_label].time[0])
+
+
+def _get_dataset_start_times(periods: list) -> dict[int, float]:
+    """Map period indexes to the start time of their source dataset."""
+    return {
+        period.get_period_index(): _get_signal_start_time(data_object.get_sequence_at(period.get_dataset_index()))
+        for period in periods
+    }
 
 
 def check_continuous_data_loaded() -> bool:
@@ -276,7 +291,11 @@ def initialize_figure(
 
     # mark the stable periods already selected, if there are any
     if saved_periods := data_object.get_dataset_stable_periods(int(dataset)):
-        current_figure = mark_selected_periods(current_figure, saved_periods)
+        current_figure = mark_selected_periods(
+            current_figure,
+            saved_periods,
+            _get_dataset_start_times(saved_periods),
+        )
 
     options = get_signal_options(
         data_object.get_sequence_at(int(dataset)),
@@ -356,16 +375,13 @@ def select_period(
     current_figure = mark_selected_periods(
         current_figure,
         [data_object.get_stable_period(period_index)],
+        {period_index: _get_signal_start_time(data)},
     )
 
     # TODO: refactor to avoid duplications
     signals = signals or []
-    ok = [options[s]["label"] for s in signals]
-    for s in current_figure["data"]:
-        if s["name"] in ok:
-            s["visible"] = True
-        else:
-            s["visible"] = False
+    selected_names = [options[s]["label"] for s in signals]
+    current_figure = update_figure_signal_visibility(current_figure, selected_names)
 
     content = [create_selected_period_card(cut_data, data.label, period_index)]
     current_summary += content
@@ -403,12 +419,7 @@ def select_signals(
 
     signals = signals or []
     selected = [options[s]["label"] for s in signals]
-
-    for s in current_figure["data"]:
-        if s["name"] in selected:
-            s["visible"] = True
-        else:
-            s["visible"] = False
+    current_figure = update_figure_signal_visibility(current_figure, selected)
 
     style = styles.GRAPH
 
@@ -693,22 +704,41 @@ def show_filtered_results(_, update, selected):
         return fig, styles.EMPTY_ELEMENT
 
     data = data_object.get_stable_period(int(selected)).get_data()
+    dataset_index = data_object.get_stable_period(int(selected)).get_dataset_index()
+    dataset_start_time = _get_signal_start_time(data_object.get_sequence_at(dataset_index))
+    selection_start_time = _get_signal_start_time(data)
+    original_time_context = build_time_axis_context(
+        data.continuous_data[RAW_EIT_LABEL].time,
+        dataset_start_time=dataset_start_time,
+        selection_start_time=selection_start_time,
+    )
+    filtered_time_context = build_time_axis_context(
+        filtered_data.continuous_data.data[FILTERED_EIT_LABEL].time,
+        dataset_start_time=dataset_start_time,
+        selection_start_time=selection_start_time,
+    )
 
     fig.add_trace(
         go.Scatter(
-            x=data.continuous_data[RAW_EIT_LABEL].time,
+            x=original_time_context.x,
             y=data.continuous_data[RAW_EIT_LABEL].values,
+            customdata=original_time_context.customdata,
+            hovertemplate=original_time_context.hovertemplate,
             name="Original signal",
         ),
     )
 
     fig.add_trace(
         go.Scatter(
-            x=filtered_data.continuous_data.data[FILTERED_EIT_LABEL].time,
+            x=filtered_time_context.x,
             y=filtered_data.continuous_data.data[FILTERED_EIT_LABEL].values,
+            customdata=filtered_time_context.customdata,
+            hovertemplate=filtered_time_context.hovertemplate,
             name="Filtered signal",
         ),
     )
+
+    fig.update_xaxes(title_text=original_time_context.axis_title)
 
     return apply_figure_theme(fig), styles.GRAPH
 

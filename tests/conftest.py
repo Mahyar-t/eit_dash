@@ -9,8 +9,10 @@ environment = os.environ.get(
     Path.resolve(Path(__file__).parent.parent),
 )
 
-data_directory = Path(environment) / "tests" / "test_data"
-data_path = Path(data_directory) / "Draeger_Test3.bin"
+base_directory = Path(environment)
+tests_data_path = base_directory / "tests" / "test_data" / "Draeger_Test3.bin"
+repo_data_path = base_directory / "test_data" / "draeger_20Hz_healthy_volunteer.bin"
+data_path = tests_data_path if tests_data_path.exists() else repo_data_path
 
 
 @pytest.fixture(scope="session")

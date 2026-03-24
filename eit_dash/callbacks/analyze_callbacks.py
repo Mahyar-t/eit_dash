@@ -1,9 +1,12 @@
 import contextlib
 
+import numpy as np
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 from dash import Input, Output, State, callback, ctx
+from dash.exceptions import PreventUpdate
 
-# from eitprocessing.parameters.eeli import EELI
+from eitprocessing.parameters.eeli import EELI
 import eit_dash.definitions.element_ids as ids
 import eit_dash.definitions.layout_styles as styles
 from eit_dash.app import data_object
@@ -14,6 +17,7 @@ from eit_dash.utils.common import (
     create_info_card,
     create_selected_period_card,
 )
+from eit_dash.utils.time_axis import build_time_axis_context
 
 # ruff: noqa: ERA001
 eeli = []
@@ -79,33 +83,44 @@ def page_setup(_, summary):
 
 @callback(
     Output(ids.EELI_RESULTS_GRAPH_DIV, "hidden"),
+    Output(ids.ALERT_EELI, "is_open"),
+    Output(ids.ALERT_EELI, "children"),
+    Output(ids.ALERT_EELI, "color"),
     Input(ids.EELI_APPLY, "n_clicks"),
+    State(ids.ANALYZE_SELECT_PERIOD_VIEW, "value"),
     prevent_initial_call=True,
 )
-def apply_eeli(_):
+def apply_eeli(_, selected):
     """Apply EELI and store results."""
-    # global eeli
-    #
-    # eeli.clear()
-    #
-    # periods = data_object.get_all_stable_periods()
-    #
-    # for period in periods:
-    #     sequence = period.get_data()
-    #     if sequence.continuous_data.get(FILTERED_EIT_LABEL):
-    #         eeli_result_filtered = EELI().compute_parameter(
-    #             sequence,
-    #             FILTERED_EIT_LABEL,
-    #         )
-    #     else:
-    #         eeli_result_filtered = EELI().compute_parameter(sequence, RAW_EIT_LABEL)
-    #
-    #     # TODO: the results should be stored in the sequence object
-    #     eeli_result_filtered["index"] = period.get_period_index()
-    #
-    #     eeli.append(eeli_result_filtered)
+    if selected is None:
+        return True, True, "Select a period before applying EELI.", "warning"
 
-    return False
+    global eeli  # noqa: PLW0603
+
+    eeli.clear()
+
+    try:
+        for period in data_object.get_all_stable_periods():
+            sequence = period.get_data()
+            signal_label = FILTERED_EIT_LABEL if sequence.continuous_data.get(FILTERED_EIT_LABEL) else RAW_EIT_LABEL
+            signal = sequence.continuous_data.get(signal_label)
+            eeli_data = EELI().compute_parameter(signal)
+
+            eeli_result = {
+                "index": period.get_period_index(),
+                "time": np.asarray(eeli_data.time),
+                "values": np.asarray(eeli_data.values),
+                "indices": np.searchsorted(signal.time, eeli_data.time),
+                "mean": float(np.mean(eeli_data.values)) if len(eeli_data.values) else None,
+                "median": float(np.median(eeli_data.values)) if len(eeli_data.values) else None,
+                "standard deviation": float(np.std(eeli_data.values)) if len(eeli_data.values) else None,
+            }
+            eeli.append(eeli_result)
+    except Exception as exc:  # pragma: no cover - defensive UI guard
+        eeli.clear()
+        return True, True, f"EELI failed: {exc}", "danger"
+
+    return False, True, f"EELI applied to {len(eeli)} period(s).", "success"
 
 
 @callback(
@@ -114,13 +129,17 @@ def apply_eeli(_):
         Output(ids.EELI_RESULTS_GRAPH, "style"),
     ],
     Input(ids.ANALYZE_SELECT_PERIOD_VIEW, "value"),
+    Input(ids.EELI_APPLY, "n_clicks"),
     prevent_initial_call=True,
 )
-def show_eeli(selected):
+def show_eeli(selected, _):
     """Show the results of the EELI for the selected period."""
-    figure = go.Figure()
+    if selected is None:
+        raise PreventUpdate
 
-    sequence = data_object.get_stable_period(int(selected)).get_data()
+    period = data_object.get_stable_period(int(selected))
+    sequence = period.get_data()
+    source_dataset = data_object.get_sequence_at(period.get_dataset_index())
 
     # Find the matching EELI result (may not exist if EELI hasn't been computed)
     result = None
@@ -134,50 +153,160 @@ def show_eeli(selected):
     else:
         data = sequence.continuous_data.get(RAW_EIT_LABEL)
 
-    figure.add_trace(
-        go.Scatter(
-            x=data.time,
-            y=data.values,
-            name=data.label,
-        ),
+    dataset_start_time = float(source_dataset.continuous_data[RAW_EIT_LABEL].time[0])
+    selection_start_time = float(data.time[0])
+    signal_time_context = build_time_axis_context(
+        data.time,
+        dataset_start_time=dataset_start_time,
+        selection_start_time=selection_start_time,
     )
 
-    if result is not None:
-        figure.add_hline(y=result["mean"], line_color="red", name="Mean")
-        figure.add_hline(y=result["median"], line_color="red", name="Median")
+    figure = make_subplots(
+        rows=2,
+        cols=1,
+        shared_xaxes=True,
+        vertical_spacing=0.2,
+        row_heights=[0.62, 0.38],
+    )
 
-        figure.add_scatter(
-            x=data.time[result["indices"]],
-            y=result["values"],
-            line_color="black",
-            name="EELIs",
-            mode="markers",
+    figure.add_trace(
+        go.Scatter(
+            x=signal_time_context.x,
+            y=data.values,
+            customdata=signal_time_context.customdata,
+            hovertemplate=signal_time_context.hovertemplate,
+            name="Input signal",
+            line={"color": "#38bdf8", "width": 2},
+            showlegend=True,
+        ),
+        row=1,
+        col=1,
+    )
+
+    figure.update_layout(
+        yaxis={"title": data.label or "Signal before EELI"},
+        yaxis2={"title": "EELI (a.u.)", "color": "#ef4444"},
+        showlegend=True,
+        legend={
+            "orientation": "h",
+            "yanchor": "bottom",
+            "y": 1.02,
+            "xanchor": "left",
+            "x": 0,
+        },
+    )
+
+    eeli_x = []
+    eeli_y = []
+    has_eeli_results = result is not None and len(result["values"]) > 0
+
+    if has_eeli_results:
+        eeli_time_context = build_time_axis_context(
+            result["time"],
+            dataset_start_time=dataset_start_time,
+            selection_start_time=selection_start_time,
         )
+        eeli_x = eeli_time_context.x
+        eeli_y = result["values"]
 
-        sd_upper = result["mean"] + result["standard deviation"]
-        sd_lower = result["mean"] - result["standard deviation"]
+        if result["mean"] is not None:
+            figure.add_trace(
+                go.Scatter(
+                    x=signal_time_context.x,
+                    y=[result["mean"]] * len(data.time),
+                    customdata=signal_time_context.customdata,
+                    hovertemplate=signal_time_context.hovertemplate,
+                    mode="lines",
+                    line={"color": "#991b1b", "width": 1.5, "dash": "dash"},
+                    name="EELI mean",
+                    showlegend=True,
+                ),
+                row=2,
+                col=1,
+            )
+        if result["median"] is not None:
+            figure.add_trace(
+                go.Scatter(
+                    x=signal_time_context.x,
+                    y=[result["median"]] * len(data.time),
+                    customdata=signal_time_context.customdata,
+                    hovertemplate=signal_time_context.hovertemplate,
+                    mode="lines",
+                    line={"color": "#dc2626", "width": 1.5, "dash": "dot"},
+                    name="EELI median",
+                    showlegend=True,
+                ),
+                row=2,
+                col=1,
+            )
+
+        if result["standard deviation"] is not None and result["mean"] is not None:
+            sd_upper = result["mean"] + result["standard deviation"]
+            sd_lower = result["mean"] - result["standard deviation"]
+
+            figure.add_trace(
+                go.Scatter(
+                    x=signal_time_context.x,
+                    y=[sd_upper] * len(data.time),
+                    customdata=signal_time_context.customdata,
+                    hovertemplate=signal_time_context.hovertemplate,
+                    fill=None,
+                    mode="lines",
+                    line={"color": "rgba(239,68,68,0)"},
+                    name="Standard deviation band",
+                    showlegend=False,
+                ),
+                row=2,
+                col=1,
+            )
+
+            figure.add_trace(
+                go.Scatter(
+                    x=signal_time_context.x,
+                    y=[sd_lower] * len(data.time),
+                    customdata=signal_time_context.customdata,
+                    hovertemplate=signal_time_context.hovertemplate,
+                    fill="tonexty",
+                    mode="lines",
+                    line={"color": "rgba(239,68,68,0.25)"},
+                    fillcolor="rgba(239,68,68,0.12)",
+                    name="Standard deviation band",
+                    showlegend=True,
+                ),
+                row=2,
+                col=1,
+            )
 
         figure.add_trace(
             go.Scatter(
-                x=data.time,
-                y=[sd_upper] * len(data.time),
-                fill=None,
-                mode="lines",
-                line_color="rgba(0,0,255,0)",  # transparent blue
-                name="Standard deviation",
+                x=eeli_x,
+                y=eeli_y,
+                customdata=eeli_time_context.customdata,
+                hovertemplate=eeli_time_context.hovertemplate,
+                line={"color": "#ef4444", "width": 1.5},
+                marker={"color": "#ef4444", "size": 8},
+                name="EELI results",
+                mode="lines+markers",
+                showlegend=True,
             ),
+            row=2,
+            col=1,
         )
-
-        # Add the lower bound line
+    else:
         figure.add_trace(
             go.Scatter(
-                x=data.time,
-                y=[sd_lower] * len(data.time),
-                fill="tonexty",  # Fill area below this line
+                x=[],
+                y=[],
+                name="EELI results",
                 mode="lines",
-                line_color="rgba(0,0,255,0.3)",  # semi-transparent blue
-                name="Standard deviation",
+                line={"color": "#ef4444", "width": 1.5},
+                showlegend=False,
+                hoverinfo="skip",
             ),
+            row=2,
+            col=1,
         )
+
+    figure.update_xaxes(title_text=signal_time_context.axis_title, row=2, col=1, rangeslider_visible=False)
 
     return apply_figure_theme(figure), styles.GRAPH

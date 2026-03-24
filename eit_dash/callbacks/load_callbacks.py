@@ -128,10 +128,11 @@ def load_selected_data(data_path, cancel_load, sig, file_type, fig):
             print(f"[DEBUG] Loaded. continuous_data keys: {list(file_data.continuous_data.keys())}")
 
             options = get_signal_options(file_data)
+            preview_signals = [RAW_EIT_LABEL, *[option["label"] for option in options]]
 
             figure = create_slider_figure(
                 file_data,
-                continuous_data=list(file_data.continuous_data),
+                continuous_data=preview_signals,
                 clickable_legend=True,
             )
             ticked = [s["value"] for s in options]

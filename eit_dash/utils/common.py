@@ -4,6 +4,7 @@ import re
 from typing import TYPE_CHECKING
 
 import dash_bootstrap_components as dbc
+import numpy as np
 import plotly.colors
 import plotly.graph_objects as go
 from dash import html
@@ -11,6 +12,7 @@ from dash import html
 from eit_dash.definitions import element_ids as ids
 from eit_dash.definitions import layout_styles as styles
 from eit_dash.definitions.constants import RAW_EIT_LABEL
+from eit_dash.utils.time_axis import build_time_axis_context
 
 if TYPE_CHECKING:
     from eitprocessing.datahandling.sequence import Sequence
@@ -222,6 +224,7 @@ def create_slider_figure(
     figure = go.Figure()
     params = {}
     y_position = 0
+    colors = plotly.colors.DEFAULT_PLOTLY_COLORS
 
     if continuous_data is None:
         continuous_data = []
@@ -230,27 +233,42 @@ def create_slider_figure(
         keys = list(dataset.continuous_data.keys()) if hasattr(dataset.continuous_data, "keys") else list(dataset.continuous_data)
         raise KeyError(f"Expected '{RAW_EIT_LABEL}' not found. Available keys: {keys}")
 
+    dataset_start_time = float(dataset.continuous_data[RAW_EIT_LABEL].time[0])
+    raw_time_context = build_time_axis_context(
+        dataset.continuous_data[RAW_EIT_LABEL].time,
+        dataset_start_time=dataset_start_time,
+    )
+
     figure.add_trace(
         go.Scatter(
-            x=dataset.continuous_data[RAW_EIT_LABEL].time,
+            x=raw_time_context.x,
             y=dataset.continuous_data[RAW_EIT_LABEL].values,
+            customdata=raw_time_context.customdata,
+            hovertemplate=raw_time_context.hovertemplate,
             name=RAW_EIT_LABEL,
-            line={'color': plotly.colors.DEFAULT_PLOTLY_COLORS[0]},
+            line={'color': colors[0]},
         ),
     )
     figure.update_yaxes(
-        color=plotly.colors.DEFAULT_PLOTLY_COLORS[0],
+        color=colors[0],
         title=f"{RAW_EIT_LABEL} {dataset.continuous_data[RAW_EIT_LABEL].unit}",
     )
 
     for n, cont_signal in enumerate(continuous_data):
         if cont_signal != RAW_EIT_LABEL:
+            color = colors[(n + 1) % len(colors)]
+            time_context = build_time_axis_context(
+                dataset.continuous_data[cont_signal].time,
+                dataset_start_time=dataset_start_time,
+            )
             figure.add_trace(
                 go.Scatter(
-                    x=dataset.continuous_data[cont_signal].time,
+                    x=time_context.x,
                     y=dataset.continuous_data[cont_signal].values,
+                    customdata=time_context.customdata,
+                    hovertemplate=time_context.hovertemplate,
                     name=cont_signal,
-                    line={'color': plotly.colors.DEFAULT_PLOTLY_COLORS[n + 1]},
+                    line={'color': color},
                     opacity=0.5,
                     yaxis=f'y{n + 2}',
                 ),
@@ -264,7 +282,7 @@ def create_slider_figure(
                 'overlaying': 'y',
                 'side': side,
                 'autoshift': True,
-                'color': plotly.colors.DEFAULT_PLOTLY_COLORS[n + 1],
+                'color': color,
             }
 
             param_name = f'yaxis{n + 2}'
@@ -285,7 +303,7 @@ def create_slider_figure(
                 break
 
     figure.update_layout(
-        xaxis={'rangeslider': {'visible': True}},
+        xaxis={'rangeslider': {'visible': True}, 'title': raw_time_context.axis_title},
         margin={'t': 0, 'l': 0, 'b': 0, 'r': 0},
         **params,
     )
@@ -299,6 +317,7 @@ def create_slider_figure(
 def mark_selected_periods(
     original_figure: go.Figure | dict,
     periods: list[Period],
+    dataset_start_times: dict[int, float],
 ) -> go.Figure:
     """
     Create the figure for the selection of range.
@@ -310,14 +329,25 @@ def mark_selected_periods(
     """
     for period in periods:
         seq = period.get_data()
+        period_index = period.get_period_index()
+        if period_index not in dataset_start_times:
+            msg = f"Missing dataset start time for period {period_index}"
+            raise KeyError(msg)
 
         for n, cont_signal in enumerate(seq.continuous_data):
+            time_context = build_time_axis_context(
+                seq.continuous_data[cont_signal].time,
+                dataset_start_time=dataset_start_times[period_index],
+                selection_start_time=float(seq.continuous_data[cont_signal].time[0]),
+            )
             params = {
-                'x': seq.continuous_data[cont_signal].time,
+                'x': time_context.x,
                 'y': seq.continuous_data[cont_signal].values,
+                'customdata': time_context.customdata,
+                'hovertemplate': time_context.hovertemplate,
                 'name': cont_signal,
-                'meta': {'uid': period.get_period_index()},
-                'line': {'color': 'black'},
+                'meta': {'uid': period_index},
+                'line': {'color': '#22c55e'},
                 'showlegend': False,
             }
             if cont_signal != RAW_EIT_LABEL:
@@ -337,6 +367,29 @@ def mark_selected_periods(
     return original_figure
 
 
+def update_figure_signal_visibility(
+    figure: go.Figure | dict,
+    visible_signal_names: list[str] | set[str],
+) -> go.Figure | dict:
+    """Keep trace and y-axis visibility aligned with the selected signals."""
+    visible_names = set(visible_signal_names)
+    axis_visibility: dict[str, bool] = {}
+
+    for trace in figure["data"]:
+        axis_ref = trace.get("yaxis") or "y"
+        axis_name = axis_ref.replace("y", "yaxis", 1)
+        is_visible = trace["name"] in visible_names
+
+        trace["visible"] = is_visible
+        axis_visibility[axis_name] = axis_visibility.get(axis_name, False) or is_visible
+
+    for axis_name, is_visible in axis_visibility.items():
+        if axis_name in figure["layout"]:
+            figure["layout"][axis_name]["visible"] = is_visible
+
+    return figure
+
+
 def get_signal_options(
     dataset: Sequence,
     show_eit: bool = False,
@@ -353,7 +406,9 @@ def get_signal_options(
 
     if dataset.continuous_data:
         for cont in dataset.continuous_data:
-            if (cont == RAW_EIT_LABEL and show_eit) or cont != RAW_EIT_LABEL:
+            values = np.asarray(dataset.continuous_data[cont].values)
+            has_finite_values = np.isfinite(values).any()
+            if ((cont == RAW_EIT_LABEL and show_eit) or (cont != RAW_EIT_LABEL and has_finite_values)):
                 options.append({'label': cont, 'value': len(options)})
 
     return options

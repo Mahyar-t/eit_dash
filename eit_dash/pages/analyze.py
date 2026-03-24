@@ -67,6 +67,13 @@ actions = html.Div(
                     ],
                     className="g-2",
                 ),
+                dbc.Alert(
+                    id=ids.ALERT_EELI,
+                    is_open=False,
+                    dismissable=True,
+                    duration=3000,
+                    className="mt-3",
+                ),
             ],
         ),
     ],

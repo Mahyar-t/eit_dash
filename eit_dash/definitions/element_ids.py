@@ -88,6 +88,7 @@ SUMMARY_COLUMN = "summary-column"
 UPDATE_FILTER_RESULTS = "update-filter-results"
 
 # analyze
+ALERT_EELI = "alert-eeli"
 ANALYZE_RESULTS_TITLE = "analyze-results-title"
 ANALYZE_SELECT_PERIOD_VIEW = "analyze-select-period-view"
 ANALYZE_TITLE = "analyze-title"
