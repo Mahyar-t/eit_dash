@@ -72,7 +72,7 @@ def test_load_selected_data_callback(file_data: Sequence, expected_cut_info_data
     assert figure.data[0]["customdata"][0][1] == pytest.approx(0.0)
     assert "Elapsed from dataset start" in figure.data[0]["hovertemplate"]
     assert "Elapsed from period start" not in figure.data[0]["hovertemplate"]
-    assert figure.layout.xaxis.title.text == "Dataset time (s)"
+    assert figure.layout.xaxis.title.text == "Dataset time (ms)"
 
     # we can check that also the other continuous data has been detected and displayed as options
 
@@ -107,8 +107,8 @@ def test_show_info_callback(file_data: Sequence, expected_cut_info_data: dict):
 
     card_text = str(output[0][0])
     assert expected_cut_info_data["Name"] in card_text
-    assert f"{expected_cut_info_data['start_time']:.3f} s" in card_text
-    assert f"{expected_cut_info_data['end_time']:.3f} s" in card_text
+    assert f"{expected_cut_info_data['start_time']:.3f} ms" in card_text
+    assert f"{expected_cut_info_data['end_time']:.3f} ms" in card_text
     assert expected_cut_info_data["vendor"].value in card_text
     assert RAW_EIT_LABEL in card_text
     assert expected_cut_info_data["path"] in card_text

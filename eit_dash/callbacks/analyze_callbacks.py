@@ -3,8 +3,8 @@ import contextlib
 import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-from dash import Input, Output, State, callback, ctx
-from dash.exceptions import PreventUpdate
+from dash import Input, MATCH, Output, State, callback, ctx
+from dash.exceptions import MissingCallbackContextException, PreventUpdate
 
 from eitprocessing.parameters.eeli import EELI
 import eit_dash.definitions.element_ids as ids
@@ -17,10 +17,42 @@ from eit_dash.utils.common import (
     create_info_card,
     create_selected_period_card,
 )
+from eit_dash.utils.output_rendering import _build_map_animation_figure, render_sequence_outputs
 from eit_dash.utils.time_axis import build_time_axis_context
 
 # ruff: noqa: ERA001
 eeli = []
+
+
+def _get_triggered_id():
+    try:
+        return ctx.triggered_id
+    except MissingCallbackContextException:
+        return None
+
+
+def _select_signal(sequence):
+    signal_label = FILTERED_EIT_LABEL if sequence.continuous_data.get(FILTERED_EIT_LABEL) else RAW_EIT_LABEL
+    return sequence.continuous_data.get(signal_label)
+
+
+def _build_eeli_result(period_index: int, signal, eeli_data) -> dict:
+    values = np.asarray(eeli_data.values)
+    return {
+        "index": period_index,
+        "time": np.asarray(eeli_data.time),
+        "values": values,
+        "indices": np.searchsorted(signal.time, eeli_data.time),
+        "mean": float(np.mean(values)) if len(values) else None,
+        "median": float(np.median(values)) if len(values) else None,
+        "standard deviation": float(np.std(values)) if len(values) else None,
+    }
+
+
+def _upsert_sparse_result(sequence, sparse_data) -> None:
+    with contextlib.suppress(KeyError):
+        sequence.sparse_data.pop(sparse_data.label)
+    sequence.sparse_data.add(sparse_data)
 
 
 @callback(
@@ -32,23 +64,16 @@ eeli = []
     [
         State(ids.SUMMARY_COLUMN_ANALYZE, "children"),
     ],
-    # this allows duplicate outputs with initial call
     prevent_initial_call="initial_duplicate",
 )
 def page_setup(_, summary):
-    """Setups the page elements when it starts up.
-
-    When the page is loaded, it populates the summary column
-    with the info about the loaded datasets and the preprocessing steps.
-    Populates the periods selections element with the loaded periods.
-    """
+    """Set up the analyze page summary and available period options."""
     trigger = ctx.triggered_id
     options = []
 
     if trigger is None:
-        for d in data_object.get_all_sequences():
-            card = create_info_card(d)
-            summary += [card]
+        for dataset in data_object.get_all_sequences():
+            summary += [create_info_card(dataset)]
 
         filter_params = {}
 
@@ -61,20 +86,14 @@ def page_setup(_, summary):
                     False,
                 ),
             ]
-
-            # populate period selection
-            options.append(
-                {
-                    "label": f"Period {period.get_period_index()}",
-                    "value": period.get_period_index(),
-                },
-            )
+            options.append({"label": f"Period {period.get_period_index()}", "value": period.get_period_index()})
 
             if not filter_params:
                 try:
                     filter_params = period.get_data().continuous_data.data[FILTERED_EIT_LABEL].parameters
                 except KeyError:
                     contextlib.suppress(Exception)
+
         if filter_params:
             summary += [create_filter_results_card(filter_params)]
 
@@ -91,7 +110,7 @@ def page_setup(_, summary):
     prevent_initial_call=True,
 )
 def apply_eeli(_, selected):
-    """Apply EELI and store results."""
+    """Apply EELI, persist the result in each period sequence, and keep a plotting cache."""
     if selected is None:
         return True, True, "Select a period before applying EELI.", "warning"
 
@@ -102,25 +121,44 @@ def apply_eeli(_, selected):
     try:
         for period in data_object.get_all_stable_periods():
             sequence = period.get_data()
-            signal_label = FILTERED_EIT_LABEL if sequence.continuous_data.get(FILTERED_EIT_LABEL) else RAW_EIT_LABEL
-            signal = sequence.continuous_data.get(signal_label)
+            signal = _select_signal(sequence)
             eeli_data = EELI().compute_parameter(signal)
-
-            eeli_result = {
-                "index": period.get_period_index(),
-                "time": np.asarray(eeli_data.time),
-                "values": np.asarray(eeli_data.values),
-                "indices": np.searchsorted(signal.time, eeli_data.time),
-                "mean": float(np.mean(eeli_data.values)) if len(eeli_data.values) else None,
-                "median": float(np.median(eeli_data.values)) if len(eeli_data.values) else None,
-                "standard deviation": float(np.std(eeli_data.values)) if len(eeli_data.values) else None,
-            }
-            eeli.append(eeli_result)
+            _upsert_sparse_result(sequence, eeli_data)
+            eeli.append(_build_eeli_result(period.get_period_index(), signal, eeli_data))
     except Exception as exc:  # pragma: no cover - defensive UI guard
         eeli.clear()
         return True, True, f"EELI failed: {exc}", "danger"
 
     return False, True, f"EELI applied to {len(eeli)} period(s).", "success"
+
+
+@callback(
+    Output(ids.ANALYZE_OUTPUTS_CONTAINER, "children"),
+    Input(ids.ANALYZE_SELECT_PERIOD_VIEW, "value"),
+    Input(ids.EELI_APPLY, "n_clicks"),
+)
+def show_outputs(selected, _):
+    """Render all outputs currently stored in the selected period sequence."""
+    if selected is None or _get_triggered_id() != ids.EELI_APPLY:
+        return []
+
+    period = data_object.get_stable_period(int(selected))
+    sequence = period.get_data()
+    source_dataset = data_object.get_sequence_at(period.get_dataset_index())
+    return render_sequence_outputs(sequence, source_dataset, int(selected))
+
+
+@callback(
+    Output({"type": ids.ANALYZE_EIT_FRAME_GRAPH, "period": MATCH, "label": MATCH}, "figure"),
+    Input({"type": ids.ANALYZE_EIT_FRAME_COUNT_INPUT, "period": MATCH, "label": MATCH}, "value"),
+    State({"type": ids.ANALYZE_EIT_FRAME_GRAPH, "period": MATCH, "label": MATCH}, "id"),
+    prevent_initial_call=True,
+)
+def update_eit_frame_playback(frame_count, graph_id):
+    """Update the EIT frame playback figure with the requested number of displayed frames."""
+    period = data_object.get_stable_period(int(graph_id["period"]))
+    eit_data = period.get_data().eit_data[graph_id["label"]]
+    return _build_map_animation_figure(eit_data.pixel_impedance, eit_data.time, "Frame playback", max_frames=frame_count)
 
 
 @callback(
@@ -133,25 +171,23 @@ def apply_eeli(_, selected):
     prevent_initial_call=True,
 )
 def show_eeli(selected, _):
-    """Show the results of the EELI for the selected period."""
+    """Show the EELI-specific view for the selected period."""
     if selected is None:
         raise PreventUpdate
+    if _get_triggered_id() != ids.EELI_APPLY:
+        return go.Figure(), styles.EMPTY_ELEMENT
 
     period = data_object.get_stable_period(int(selected))
     sequence = period.get_data()
     source_dataset = data_object.get_sequence_at(period.get_dataset_index())
 
-    # Find the matching EELI result (may not exist if EELI hasn't been computed)
     result = None
-    for e in eeli:
-        if e["index"] == int(selected):
-            result = e
+    for entry in eeli:
+        if entry["index"] == int(selected):
+            result = entry
             break
 
-    if sequence.continuous_data.get(FILTERED_EIT_LABEL):
-        data = sequence.continuous_data.get(FILTERED_EIT_LABEL)
-    else:
-        data = sequence.continuous_data.get(RAW_EIT_LABEL)
+    data = _select_signal(sequence)
 
     dataset_start_time = float(source_dataset.continuous_data[RAW_EIT_LABEL].time[0])
     selection_start_time = float(data.time[0])

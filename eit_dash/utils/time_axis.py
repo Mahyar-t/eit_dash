@@ -34,15 +34,15 @@ def build_time_axis_context(
     )
 
     hover_lines = [
-        "Dataset time: %{x:.3f} s",
-        "Elapsed from dataset start: %{customdata[0]:.3f} s",
+        "Dataset time: %{x:.3f} ms",
+        "Elapsed from dataset start: %{customdata[0]:.3f} ms",
     ]
     if not np.isclose(selection_start, dataset_start_time):
-        hover_lines.append("Elapsed from period start: %{customdata[1]:.3f} s")
+        hover_lines.append("Elapsed from period start: %{customdata[1]:.3f} ms")
 
     return TimeAxisContext(
         x=time_array,
         customdata=customdata,
-        axis_title="Dataset time (s)",
+        axis_title="Dataset time (ms)",
         hovertemplate="<br>".join(hover_lines) + y_suffix,
     )

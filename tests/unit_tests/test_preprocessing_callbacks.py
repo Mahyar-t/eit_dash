@@ -178,7 +178,7 @@ def test_show_filtered_results_keeps_absolute_period_time(file_data: Sequence):
     assert figure.data[0].customdata[0][0] == pytest.approx(period.continuous_data[RAW_EIT_LABEL].time[0] - file_data.time[0])
     assert figure.data[0].customdata[0][1] == pytest.approx(0.0)
     assert "Elapsed from period start" in figure.data[0].hovertemplate
-    assert figure.layout.xaxis.title.text == "Dataset time (s)"
+    assert figure.layout.xaxis.title.text == "Dataset time (ms)"
 
 
 def test_open_synch_modal_callback():

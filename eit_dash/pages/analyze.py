@@ -27,6 +27,7 @@ results = html.Div(
                     id=ids.EELI_RESULTS_GRAPH_DIV,
                     hidden=True,
                 ),
+                html.Div(id=ids.ANALYZE_OUTPUTS_CONTAINER, style=styles.LOAD_RESULTS),
             ],
             className="glass-panel--results",
         ),
@@ -56,7 +57,7 @@ actions = html.Div(
                         ),
                         dbc.Col(
                             dbc.Button(
-                                "Apply EELI",
+                                "Calculate results",
                                 id=ids.EELI_APPLY,
                                 disabled=False,
                                 className="glass-button glass-button--primary h-100 w-100",

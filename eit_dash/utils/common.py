@@ -37,13 +37,14 @@ def apply_figure_theme(figure: go.Figure) -> go.Figure:
         paper_bgcolor='rgba(15, 23, 42, 0.9)',
         plot_bgcolor='rgba(11, 17, 32, 0.95)',
         font={'color': '#f8f9fa', 'family': 'Avenir Next, Segoe UI, Trebuchet MS, sans-serif'},
+        title={'automargin': True, 'y': 0.97},
         legend={
             'bgcolor': 'rgba(15, 23, 42, 0.9)',
             'bordercolor': 'rgba(255, 255, 255, 0.2)',
             'borderwidth': 1,
             'font': {'color': '#f8f9fa'},
         },
-        margin={'t': 24, 'l': 16, 'b': 16, 'r': 16},
+        margin={'t': 56, 'l': 24, 'b': 56, 'r': 24},
         hoverlabel={'bgcolor': '#0f172a', 'font': {'color': '#f8f9fa'}},
     )
     figure.update_xaxes(
@@ -58,6 +59,8 @@ def apply_figure_theme(figure: go.Figure) -> go.Figure:
             'bordercolor': 'rgba(255, 255, 255, 0.2)',
             'thickness': 0.1,
         },
+        automargin=True,
+        title_standoff=18,
     )
     figure.update_yaxes(
         showgrid=True,
@@ -66,6 +69,8 @@ def apply_figure_theme(figure: go.Figure) -> go.Figure:
         linecolor='rgba(255, 255, 255, 0.2)',
         tickcolor='rgba(255, 255, 255, 0.3)',
         color='#f8f9fa',
+        automargin=True,
+        title_standoff=16,
     )
 
     return figure
@@ -121,8 +126,8 @@ def create_info_card(dataset: Sequence, remove_button: bool = False) -> dbc.Card
     rows = [
         ('Name', dataset.label),
         ('Frames', dataset.eit_data['raw'].nframes),
-        ('Start time', f"{dataset.eit_data['raw'].time[0]:.3f} s"),
-        ('End time', f"{dataset.eit_data['raw'].time[-1]:.3f} s"),
+        ('Start time', f"{dataset.eit_data['raw'].time[0]:.3f} ms"),
+        ('End time', f"{dataset.eit_data['raw'].time[-1]:.3f} ms"),
         ('Vendor', vendor_val),
         ('Signals', ', '.join(list(dataset.continuous_data))),
         ('Path', str(dataset.eit_data['raw'].path)),
@@ -173,8 +178,8 @@ def create_selected_period_card(
     rows = [
         ('Name', period.label),
         ('Frames', period.eit_data['raw'].nframes),
-        ('Start time', f"{period.eit_data['raw'].time[0]:.3f} s"),
-        ('End time', f"{period.eit_data['raw'].time[-1]:.3f} s"),
+        ('Start time', f"{period.eit_data['raw'].time[0]:.3f} ms"),
+        ('End time', f"{period.eit_data['raw'].time[-1]:.3f} ms"),
         ('Dataset', dataset),
     ]
 
