@@ -26,16 +26,7 @@ _MAX_TABLE_ROWS = 12
 _MAX_ANIMATION_FRAMES = 90
 _MAP_GRAPH_CONFIG = {"modeBarButtonsToRemove": ["zoom2d", "select2d", "lasso2d"]}
 
-# These paper coordinates keep the playback controls aligned with the square heatmap view.
-_PLAYBACK_TRACK_X0 = 0.12
-_PLAYBACK_TRACK_X1 = 0.82
-_PLAYBACK_TRACK_Y0 = -0.132
-_PLAYBACK_TRACK_Y1 = -0.104
-_PLAYBACK_BUTTON_X = 0.02
-_PLAYBACK_BUTTON_Y = _PLAYBACK_TRACK_Y1
-_PLAYBACK_CURRENT_TIME_Y = -0.158
-_PLAYBACK_ENDPOINT_Y = -0.182
-_PLAYBACK_AXIS_LABEL_Y = -0.222
+_FRAME_DURATION_MS = 80  # milliseconds per animation frame
 
 
 def render_sequence_outputs(
@@ -138,8 +129,9 @@ def _render_eit_collection(
                     id=_eit_frame_graph_id(period_index, label),
                     figure=_build_map_animation_figure(eit_data.pixel_impedance, eit_data.time, "Frame playback"),
                     config=_MAP_GRAPH_CONFIG,
-                    style={"aspectRatio": "1 / 1"},
+                    style={"height": "800px"},
                 ),
+                _build_playback_controls(period_index, label),
                 _build_frame_count_control(eit_data, period_index),
             ],
         )
@@ -323,109 +315,126 @@ def _build_sparse_numeric_figure(
 
 
 def _build_map_animation_figure(values: np.ndarray, time_values, title: str, max_frames: int | None = None) -> go.Figure:
+    """Build an animated heatmap figure with Plotly's native slider scrubber.
+
+    Time is shown live in the figure title (updated per frame), so no
+    separate progress-bar overlay or currentvalue label is needed.
+    Play/Pause/Reset are handled by external Dash buttons (see _build_playback_controls).
+    """
     indices = _animation_indices(len(values), max_frames=max_frames)
     displayed_values = np.asarray(values[indices], dtype=float)
     displayed_time = np.asarray(time_values, dtype=float)[indices]
+    time_s = displayed_time / 1000.0  # ms -> s
 
     has_values = np.any(~np.isnan(displayed_values))
     zmin = float(np.nanmin(displayed_values)) if has_values else None
     zmax = float(np.nanmax(displayed_values)) if has_values else None
 
-    initial_frame = np.asarray(displayed_values[0], dtype=float)
+    _heatmap_kwargs = dict(
+        colorscale="Viridis",
+        zmin=zmin,
+        zmax=zmax,
+        hovertemplate="Row %{y}<br>Col %{x}<br>Value %{z:.3f}<extra></extra>",
+    )
+
+    frame_names = [f"frame-{i}" for i in range(len(displayed_values))]
+    sample_note = f" — sampled {len(indices)} of {len(values)} frames" if len(indices) < len(values) else ""
+
+    def _frame_title(t: float) -> str:
+        return f"{title}{sample_note}  |  {t:.2f} s"
+
+    plot_domain = [0.08, 0.88]
+    colorbar_x = 0.93
+
     figure = go.Figure(
         data=[
             go.Heatmap(
-                z=initial_frame,
-                colorscale="Viridis",
-                zmin=zmin,
-                zmax=zmax,
-                colorbar={"title": "Value"},
-                hovertemplate="Row %{y}<br>Col %{x}<br>Value %{z:.3f}<extra></extra>",
+                z=np.asarray(displayed_values[0], dtype=float),
+                colorbar={"title": "Value", "x": colorbar_x, "len": 0.9},
+                **_heatmap_kwargs,
             )
-        ]
+        ],
+        frames=[
+            go.Frame(
+                data=[go.Heatmap(z=np.asarray(frame_values, dtype=float), **_heatmap_kwargs)],
+                layout=go.Layout(title=_frame_title(t)),
+                name=frame_name,
+            )
+            for frame_name, frame_values, t in zip(frame_names, displayed_values, time_s, strict=True)
+        ],
     )
 
-    frame_names = [f"frame-{index}" for index in range(len(displayed_values))]
-    figure.frames = [
-        go.Frame(
-            data=[
-                go.Heatmap(
-                    z=np.asarray(frame_values, dtype=float),
-                    colorscale="Viridis",
-                    zmin=zmin,
-                    zmax=zmax,
-                    hovertemplate="Row %{y}<br>Col %{x}<br>Value %{z:.3f}<extra></extra>",
-                )
+    # One slider step per frame; clicking a step jumps directly to that frame.
+    slider_steps = [
+        {
+            "args": [
+                [frame_name],
+                {"frame": {"duration": 0, "redraw": True}, "mode": "immediate", "transition": {"duration": 0}},
             ],
-            layout=go.Layout(**_build_playback_indicator_layout(displayed_time, index)),
-            name=frame_name,
-        )
-        for index, (frame_name, frame_values) in enumerate(zip(frame_names, displayed_values, strict=True))
+            "label": f"{t:.1f}",
+            "method": "animate",
+        }
+        for frame_name, t in zip(frame_names, time_s, strict=True)
     ]
-
-    sample_note = ""
-    if len(indices) < len(values):
-        sample_note = f" - sampled {len(indices)} of {len(values)} frames"
 
     figure = apply_figure_theme(figure)
     figure.update_layout(
-        title=f"{title}{sample_note}",
-        xaxis={"showticklabels": False, "constrain": "domain"},
+        title=_frame_title(time_s[0]),
+        xaxis={"showticklabels": False, "constrain": "domain", "domain": plot_domain},
         yaxis={"showticklabels": False, "scaleanchor": "x", "scaleratio": 1, "constrain": "domain"},
-        margin={"t": 64, "l": 24, "b": 176, "r": 24},
-        **_build_playback_indicator_layout(displayed_time, 0),
-        updatemenus=[
+        margin={"t": 60, "l": 20, "b": 60, "r": 20},
+        sliders=[
             {
-                "type": "buttons",
-                "direction": "down",
-                "buttons": [
-                    {
-                        "label": "Reset",
-                        "method": "animate",
-                        "args": [
-                            [frame_names[0]],
-                            {
-                                "frame": {"duration": 0, "redraw": True},
-                                "mode": "immediate",
-                                "transition": {"duration": 0},
-                            },
-                        ],
-                    },
-                    {
-                        "label": "Play / Pause",
-                        "method": "animate",
-                        "args": [
-                            None,
-                            {
-                                "frame": {"duration": 80, "redraw": True},
-                                "fromcurrent": True,
-                                "transition": {"duration": 0},
-                            },
-                        ],
-                        "args2": [
-                            [None],
-                            {
-                                "frame": {"duration": 0, "redraw": False},
-                                "mode": "immediate",
-                                "transition": {"duration": 0},
-                            },
-                        ],
-                    },
-                ],
-                "bgcolor": "rgba(30, 41, 59, 0.96)",
-                "bordercolor": "rgba(148, 163, 184, 0.45)",
-                "borderwidth": 1,
-                "font": {"color": "#f8f9fa", "size": 12},
-                "pad": {"r": 8, "t": 0},
-                "showactive": False,
-                "x": _PLAYBACK_BUTTON_X,
+                "active": 0,
+                "steps": slider_steps,
+                "x": plot_domain[0],
+                "len": plot_domain[1] - plot_domain[0],
                 "xanchor": "left",
-                "y": _PLAYBACK_BUTTON_Y,
+                "y": -0.15,
                 "yanchor": "top",
-            },
+                "pad": {"t": 18, "b": 0, "l": 0, "r": 0},
+                "currentvalue": {"visible": False},
+                "transition": {"duration": 0},
+                "bgcolor": "rgba(56, 189, 248, 0.55)",
+                "bordercolor": "rgba(148, 163, 184, 0.35)",
+                "tickcolor": "rgba(148, 163, 184, 0.4)",
+                "font": {"color": "rgba(148, 163, 184, 0.75)", "size": 10},
+                "minorticklen": 0,
+            }
         ],
     )
     return figure
+
+
+def _playback_btn_id(id_type: str, period_index: int | None, label: str) -> dict:
+    return {"type": id_type, "period": period_index, "label": label}
+
+
+def _build_playback_controls(period_index: int | None, label: str) -> html.Div:
+    """External Dash control row: Play/Pause toggle + Reset button + hidden state store."""
+    return html.Div(
+        [
+            dcc.Store(id=_playback_btn_id(ids.ANALYZE_EIT_PLAY_STATE, period_index, label), data=False),
+            dbc.Button(
+                "\u25b6\ufe0f Play",
+                id=_playback_btn_id(ids.ANALYZE_EIT_PLAY_BTN, period_index, label),
+                color="primary",
+                size="sm",
+                outline=True,
+                className="me-2 playback-btn",
+            ),
+            dbc.Button(
+                "\u23ee\ufe0f Reset",
+                id=_playback_btn_id(ids.ANALYZE_EIT_RESET_BTN, period_index, label),
+                color="secondary",
+                size="sm",
+                outline=True,
+                className="playback-btn",
+            ),
+        ],
+        className="d-flex align-items-center mt-2 mb-1",
+    )
+
 
 
 def _animation_indices(length: int, max_frames: int | None = None) -> np.ndarray:
@@ -487,104 +496,6 @@ def _build_frame_count_control(eit_data: EITData, period_index: int | None) -> d
         justify="start",
     )
 
-
-def _format_animation_time_seconds(time_ms: float) -> str:
-    return f"{time_ms / 1000:.2f}"
-
-
-def _build_playback_indicator_layout(time_values_ms: np.ndarray, active_index: int) -> dict[str, list[dict]]:
-    return {
-        "annotations": _build_playback_indicator_annotations(time_values_ms, active_index),
-        "shapes": _build_playback_indicator_shapes(time_values_ms, active_index),
-    }
-
-
-def _build_playback_indicator_shapes(time_values_ms: np.ndarray, active_index: int) -> list[dict]:
-    progress_fraction = 1.0 if len(time_values_ms) <= 1 else active_index / (len(time_values_ms) - 1)
-    progress_x = _PLAYBACK_TRACK_X0 + (_PLAYBACK_TRACK_X1 - _PLAYBACK_TRACK_X0) * progress_fraction
-
-    return [
-        {
-            "type": "rect",
-            "xref": "paper",
-            "yref": "paper",
-            "x0": _PLAYBACK_TRACK_X0,
-            "x1": _PLAYBACK_TRACK_X1,
-            "y0": _PLAYBACK_TRACK_Y0,
-            "y1": _PLAYBACK_TRACK_Y1,
-            "line": {"color": "rgba(148, 163, 184, 0.4)", "width": 1},
-            "fillcolor": "rgba(30, 41, 59, 0.9)",
-            "layer": "above",
-        },
-        {
-            "type": "rect",
-            "xref": "paper",
-            "yref": "paper",
-            "x0": _PLAYBACK_TRACK_X0,
-            "x1": progress_x,
-            "y0": _PLAYBACK_TRACK_Y0,
-            "y1": _PLAYBACK_TRACK_Y1,
-            "line": {"width": 0},
-            "fillcolor": "rgba(56, 189, 248, 0.65)",
-            "layer": "above",
-        },
-        {
-            "type": "line",
-            "xref": "paper",
-            "yref": "paper",
-            "x0": progress_x,
-            "x1": progress_x,
-            "y0": _PLAYBACK_TRACK_Y0 - 0.01,
-            "y1": _PLAYBACK_TRACK_Y1 + 0.01,
-            "line": {"color": "#f8fafc", "width": 2},
-            "layer": "above",
-        },
-    ]
-
-
-def _build_playback_indicator_annotations(time_values_ms: np.ndarray, active_index: int) -> list[dict]:
-    current_time = _format_animation_time_seconds(float(time_values_ms[active_index]))
-    start_time = _format_animation_time_seconds(float(time_values_ms[0]))
-    end_time = _format_animation_time_seconds(float(time_values_ms[-1]))
-
-    annotation_base = {
-        "xref": "paper",
-        "yref": "paper",
-        "showarrow": False,
-        "font": {"color": "#f8f9fa"},
-    }
-    return [
-        {
-            **annotation_base,
-            "x": (_PLAYBACK_TRACK_X0 + _PLAYBACK_TRACK_X1) / 2,
-            "y": _PLAYBACK_CURRENT_TIME_Y,
-            "text": f"{current_time} s",
-            "font": {"color": "#f8f9fa", "size": 13},
-        },
-        {
-            **annotation_base,
-            "x": _PLAYBACK_TRACK_X0,
-            "y": _PLAYBACK_ENDPOINT_Y,
-            "xanchor": "left",
-            "text": start_time,
-            "font": {"color": "rgba(226, 232, 240, 0.75)", "size": 11},
-        },
-        {
-            **annotation_base,
-            "x": _PLAYBACK_TRACK_X1,
-            "y": _PLAYBACK_ENDPOINT_Y,
-            "xanchor": "right",
-            "text": end_time,
-            "font": {"color": "rgba(226, 232, 240, 0.75)", "size": 11},
-        },
-        {
-            **annotation_base,
-            "x": (_PLAYBACK_TRACK_X0 + _PLAYBACK_TRACK_X1) / 2,
-            "y": _PLAYBACK_AXIS_LABEL_Y,
-            "text": "Time (s)",
-            "font": {"color": "rgba(226, 232, 240, 0.82)", "size": 12},
-        },
-    ]
 
 
 def _numeric_summary_rows(values: np.ndarray) -> list[tuple[str, str]]:

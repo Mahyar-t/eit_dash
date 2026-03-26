@@ -3,7 +3,7 @@ import contextlib
 import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-from dash import Input, MATCH, Output, State, callback, ctx
+from dash import ClientsideFunction, Input, MATCH, Output, State, callback, clientside_callback, ctx
 from dash.exceptions import MissingCallbackContextException, PreventUpdate
 
 from eitprocessing.parameters.eeli import EELI
@@ -19,6 +19,27 @@ from eit_dash.utils.common import (
 )
 from eit_dash.utils.output_rendering import _build_map_animation_figure, render_sequence_outputs
 from eit_dash.utils.time_axis import build_time_axis_context
+
+# ---------------------------------------------------------------------------
+# Clientside callback: Play/Pause toggle + Reset for each EIT frame graph.
+#
+# Each graph instance has pattern-matched IDs keyed on {period, label}.
+# The callback:
+#   1. Toggles is_playing in the dcc.Store
+#   2. Updates the button label (▶ Play <-> ⏸ Pause)
+#   3. Calls Plotly.animate() on the graph to start/stop/reset animation
+# ---------------------------------------------------------------------------
+clientside_callback(
+    ClientsideFunction(namespace="playback", function_name="control_animation"),
+    Output({"type": ids.ANALYZE_EIT_PLAY_STATE, "period": MATCH, "label": MATCH}, "data"),
+    Output({"type": ids.ANALYZE_EIT_PLAY_BTN, "period": MATCH, "label": MATCH}, "children"),
+    Input({"type": ids.ANALYZE_EIT_PLAY_BTN, "period": MATCH, "label": MATCH}, "n_clicks"),
+    Input({"type": ids.ANALYZE_EIT_RESET_BTN, "period": MATCH, "label": MATCH}, "n_clicks"),
+    State({"type": ids.ANALYZE_EIT_PLAY_STATE, "period": MATCH, "label": MATCH}, "data"),
+    State({"type": ids.ANALYZE_EIT_FRAME_GRAPH, "period": MATCH, "label": MATCH}, "id"),
+    prevent_initial_call=True,
+)
+
 
 # ruff: noqa: ERA001
 eeli = []
