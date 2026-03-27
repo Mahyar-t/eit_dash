@@ -1,5 +1,5 @@
 import dash_bootstrap_components as dbc
-from dash import dcc, html, register_page
+from dash import html, register_page
 
 import eit_dash.definitions.element_ids as ids
 import eit_dash.definitions.layout_styles as styles
@@ -20,13 +20,6 @@ results = html.Div(
         html.Div(
             [
                 html.Div(id=ids.DATASET_CONTAINER, style=styles.LOAD_RESULTS),
-                html.Div(
-                    [
-                        dcc.Graph(id=ids.EELI_RESULTS_GRAPH, style=styles.EMPTY_ELEMENT),
-                    ],
-                    id=ids.EELI_RESULTS_GRAPH_DIV,
-                    hidden=True,
-                ),
                 html.Div(id=ids.ANALYZE_OUTPUTS_CONTAINER, style=styles.LOAD_RESULTS),
             ],
             className="glass-panel--results",

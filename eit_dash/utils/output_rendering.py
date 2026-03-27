@@ -26,7 +26,7 @@ _MAX_TABLE_ROWS = 12
 _MAX_ANIMATION_FRAMES = 90
 _MAP_GRAPH_CONFIG = {"modeBarButtonsToRemove": ["zoom2d", "select2d", "lasso2d"]}
 
-_FRAME_DURATION_MS = 80  # milliseconds per animation frame
+_FRAME_DURATION_MS = 80  # animation frame duration in milliseconds
 
 
 def render_sequence_outputs(
@@ -119,8 +119,8 @@ def _render_eit_collection(
                         ("Frames", eit_data.nframes),
                         ("Shape", eit_data.pixel_impedance.shape),
                         ("Sample frequency", f"{eit_data.sample_frequency:.3f} Hz"),
-                        ("Start time", f"{eit_data.time[0]:.3f} ms"),
-                        ("End time", f"{eit_data.time[-1]:.3f} ms"),
+                        ("Start time", f"{eit_data.time[0]:.3f} s"),
+                        ("End time", f"{eit_data.time[-1]:.3f} s"),
                         ("Path", eit_data.path),
                     ],
                 ),
@@ -157,8 +157,8 @@ def _render_continuous_collection(sequence: Sequence, dataset_start_time: float,
                             "Sample frequency",
                             f"{data.sample_frequency:.3f} Hz" if data.sample_frequency is not None else "n/a",
                         ),
-                        ("Start time", f"{data.time[0]:.3f} ms"),
-                        ("End time", f"{data.time[-1]:.3f} ms"),
+                        ("Start time", f"{data.time[0]:.3f} s"),
+                        ("End time", f"{data.time[-1]:.3f} s"),
                     ],
                 ),
                 dcc.Graph(figure=_build_continuous_figure(data, dataset_start_time, selection_start_time)),
@@ -324,7 +324,6 @@ def _build_map_animation_figure(values: np.ndarray, time_values, title: str, max
     indices = _animation_indices(len(values), max_frames=max_frames)
     displayed_values = np.asarray(values[indices], dtype=float)
     displayed_time = np.asarray(time_values, dtype=float)[indices]
-    time_s = displayed_time / 1000.0  # ms -> s
 
     has_values = np.any(~np.isnan(displayed_values))
     zmin = float(np.nanmin(displayed_values)) if has_values else None
@@ -360,7 +359,7 @@ def _build_map_animation_figure(values: np.ndarray, time_values, title: str, max
                 layout=go.Layout(title=_frame_title(t)),
                 name=frame_name,
             )
-            for frame_name, frame_values, t in zip(frame_names, displayed_values, time_s, strict=True)
+            for frame_name, frame_values, t in zip(frame_names, displayed_values, displayed_time, strict=True)
         ],
     )
 
@@ -374,12 +373,12 @@ def _build_map_animation_figure(values: np.ndarray, time_values, title: str, max
             "label": f"{t:.1f}",
             "method": "animate",
         }
-        for frame_name, t in zip(frame_names, time_s, strict=True)
+        for frame_name, t in zip(frame_names, displayed_time, strict=True)
     ]
 
     figure = apply_figure_theme(figure)
     figure.update_layout(
-        title=_frame_title(time_s[0]),
+        title=_frame_title(displayed_time[0]),
         xaxis={"showticklabels": False, "constrain": "domain", "domain": plot_domain},
         yaxis={"showticklabels": False, "scaleanchor": "x", "scaleratio": 1, "constrain": "domain"},
         margin={"t": 60, "l": 20, "b": 60, "r": 20},
@@ -511,7 +510,7 @@ def _numeric_summary_rows(values: np.ndarray) -> list[tuple[str, str]]:
 
 
 def _sparse_rows_without_values(data: SparseData) -> list[tuple[str, str]]:
-    rows = [("Time", f"{time_value:.3f} ms") for time_value in np.asarray(data.time[:_MAX_TABLE_ROWS], dtype=float)]
+    rows = [("Time", f"{time_value:.3f} s") for time_value in np.asarray(data.time[:_MAX_TABLE_ROWS], dtype=float)]
     if len(data) > _MAX_TABLE_ROWS:
         rows.append(("...", f"{len(data) - _MAX_TABLE_ROWS} more event(s)"))
     return rows
@@ -521,7 +520,7 @@ def _sparse_preview_rows(data: SparseData) -> list[tuple[str, str]]:
     rows = []
     preview_count = min(len(data), _MAX_TABLE_ROWS)
     for index in range(preview_count):
-        rows.append((f"{float(data.time[index]):.3f} ms", _summarize_value(data.values[index])))
+        rows.append((f"{float(data.time[index]):.3f} s", _summarize_value(data.values[index])))
     if len(data) > _MAX_TABLE_ROWS:
         rows.append(("...", f"{len(data) - _MAX_TABLE_ROWS} more event(s)"))
     return rows
@@ -532,7 +531,7 @@ def _interval_rows(data: IntervalData) -> list[tuple[str, str]]:
     preview_count = min(len(data), _MAX_TABLE_ROWS)
     for index in range(preview_count):
         interval = data.intervals[index]
-        row_label = f"{interval.start_time:.3f} - {interval.end_time:.3f} ms"
+        row_label = f"{interval.start_time:.3f} - {interval.end_time:.3f} s"
         value = data.values[index] if data.has_values else None
         if isinstance(value, Breath):
             row_value = f"Breath(start={value.start_time:.3f}, middle={value.middle_time:.3f}, end={value.end_time:.3f})"

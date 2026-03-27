@@ -839,7 +839,12 @@ def filter_data(data: Sequence, filter_params: dict) -> ContinuousData | None:
 
     Returns: the data with the filtered version added
     """
-    filter_params["sample_frequency"] = data.eit_data.data["raw"].framerate
+    raw_eit = data.eit_data.data["raw"]
+    sample_frequency = getattr(raw_eit, "sample_frequency", None)
+    if sample_frequency is None:
+        sample_frequency = raw_eit.framerate
+
+    filter_params["sample_frequency"] = sample_frequency
 
     filt = ButterworthFilter(**filter_params)
 
@@ -852,6 +857,7 @@ def filter_data(data: Sequence, filter_params: dict) -> ContinuousData | None:
         "impedance",
         derived_from=[*gi.derived_from, gi],
         parameters=filter_params,
+        sample_frequency=sample_frequency,
         time=data.continuous_data[RAW_EIT_LABEL].time,
         values=filt.apply_filter(data.continuous_data[RAW_EIT_LABEL].values),
     )

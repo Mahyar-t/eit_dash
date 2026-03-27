@@ -126,8 +126,8 @@ def create_info_card(dataset: Sequence, remove_button: bool = False) -> dbc.Card
     rows = [
         ('Name', dataset.label),
         ('Frames', dataset.eit_data['raw'].nframes),
-        ('Start time', f"{dataset.eit_data['raw'].time[0]:.3f} ms"),
-        ('End time', f"{dataset.eit_data['raw'].time[-1]:.3f} ms"),
+        ('Start time', f"{dataset.eit_data['raw'].time[0]:.3f} s"),
+        ('End time', f"{dataset.eit_data['raw'].time[-1]:.3f} s"),
         ('Vendor', vendor_val),
         ('Signals', ', '.join(list(dataset.continuous_data))),
         ('Path', str(dataset.eit_data['raw'].path)),
@@ -178,8 +178,8 @@ def create_selected_period_card(
     rows = [
         ('Name', period.label),
         ('Frames', period.eit_data['raw'].nframes),
-        ('Start time', f"{period.eit_data['raw'].time[0]:.3f} ms"),
-        ('End time', f"{period.eit_data['raw'].time[-1]:.3f} ms"),
+        ('Start time', f"{period.eit_data['raw'].time[0]:.3f} s"),
+        ('End time', f"{period.eit_data['raw'].time[-1]:.3f} s"),
         ('Dataset', dataset),
     ]
 

@@ -11,6 +11,7 @@ import eit_dash.definitions.element_ids as ids
 import eit_dash.definitions.layout_styles as styles
 from eit_dash.callbacks.preprocessing_callbacks import (
     apply_filter,
+    filter_data,
     initialize_figure,
     open_periods_modal,
     open_synch_modal,
@@ -78,7 +79,31 @@ def test_apply_filter_callback(
         # the filtered results are saved in a temporary object before saving them
         # through a different call. We need to verify if the presence of the data
         # in the mocked temporary object.
+        filtered_signal = mock_tmp_results.get_stable_period(0).get_data().continuous_data["global_impedance_(filtered)"]
         assert "global_impedance_(filtered)" in mock_tmp_results.get_stable_period(0).get_data().continuous_data
+        assert filtered_signal.sample_frequency == pytest.approx(
+            mock_data_object.get_stable_period(0).get_data().eit_data["raw"].sample_frequency
+        )
+
+
+def test_filter_data_preserves_sample_frequency(file_data: Sequence):
+    """Filtered signals should keep a sampling rate for downstream analysis like EELI."""
+    period = file_data.select_by_time(
+        start_time=file_data.time[100],
+        end_time=file_data.time[110],
+    )
+
+    filtered_signal = filter_data(
+        period,
+        {
+            "filter_type": FilterTypes.bandpass.name,
+            "cutoff_frequency": [1, 9],
+            "order": 1,
+        },
+    )
+
+    assert filtered_signal is not None
+    assert filtered_signal.sample_frequency == pytest.approx(period.eit_data["raw"].sample_frequency)
 
 
 def test_initialize_figure_keeps_absolute_overlay_time(file_data: Sequence):
@@ -178,7 +203,7 @@ def test_show_filtered_results_keeps_absolute_period_time(file_data: Sequence):
     assert figure.data[0].customdata[0][0] == pytest.approx(period.continuous_data[RAW_EIT_LABEL].time[0] - file_data.time[0])
     assert figure.data[0].customdata[0][1] == pytest.approx(0.0)
     assert "Elapsed from period start" in figure.data[0].hovertemplate
-    assert figure.layout.xaxis.title.text == "Dataset time (ms)"
+    assert figure.layout.xaxis.title.text == "Dataset time (s)"
 
 
 def test_open_synch_modal_callback():
