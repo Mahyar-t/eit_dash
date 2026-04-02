@@ -41,7 +41,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             </div>
             <p className="page-intro sidebar-copy">
               Advanced Lung Image processing for personalized mechanical
-              Ventilation dashboard for loading, pre-processing, and analyzing
+              VEntilation dashboard for loading, pre-processing, and analyzing
               EIT data.
             </p>
             <div className="sidebar-divider" />
