@@ -1,5 +1,6 @@
 import click
 
+from backend.__main__ import main as run_api_main
 from eit_dash.main import app
 
 
@@ -15,6 +16,12 @@ def cli(ctx):
 def run():
     """Start the dashboard."""
     app.run_server(debug=True)
+
+
+@cli.command(name="run-api", help="Start the FastAPI preview backend.")
+def run_api():
+    """Start the FastAPI preview backend."""
+    run_api_main()
 
 
 if __name__ == "__main__":

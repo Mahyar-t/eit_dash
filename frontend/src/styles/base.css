@@ -1,0 +1,94 @@
+/* Base theme tokens */
+:root {
+  --golden-ratio: 1.61803398875;
+  --navbar-height: 65px;
+  --navbar-shell-offset: 88px;
+  --navbar-shell-offset-hidden: 24px;
+  --ocean-1: #03045e;
+  --ocean-1-rgb: 3, 4, 94;
+  --ink: #000000;
+  --card-fill: rgba(255, 255, 255, 0.25);
+  --card-fill-strong: rgba(255, 255, 255, 0.4);
+  --card-border: rgba(255, 255, 255, 0.5);
+  --shadow: 0 8px 32px rgba(var(--ocean-1-rgb), 0.15);
+  --text: #000000;
+}
+
+/* Global box sizing */
+* {
+  box-sizing: border-box;
+}
+
+/* Document sizing */
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+/* Global page background */
+body {
+  margin: 0;
+  min-height: 100dvh;
+  color: var(--text);
+  font-family: 'Avenir Next', 'Segoe UI', 'Trebuchet MS', sans-serif;
+  background: url('../assets/bg.png') no-repeat center center fixed;
+  background-size: cover;
+  overflow-x: hidden;
+}
+
+/* Modal state helpers */
+body.load-modal-open {
+  overflow: hidden;
+}
+
+body.load-modal-open #dashboard-shell {
+  visibility: hidden;
+}
+
+/* Shared element defaults */
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+img,
+svg,
+canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Global text color normalization */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+a,
+span,
+label {
+  color: #000000;
+}
+
+input,
+select {
+  color: #000000;
+}
+
+input::placeholder {
+  color: rgba(0, 0, 0, 0.58);
+}
+
+/* Home page shell */
+.index-shell {
+  flex: 1 1 auto;
+  min-height: 0;
+}

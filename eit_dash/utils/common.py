@@ -39,12 +39,17 @@ def apply_figure_theme(figure: go.Figure) -> go.Figure:
         font={'color': '#f8f9fa', 'family': 'Avenir Next, Segoe UI, Trebuchet MS, sans-serif'},
         title={'automargin': True, 'y': 0.97},
         legend={
+            'orientation': 'h',
+            'yanchor': 'bottom',
+            'y': 1.02,
+            'xanchor': 'left',
+            'x': 0,
             'bgcolor': 'rgba(15, 23, 42, 0.9)',
             'bordercolor': 'rgba(255, 255, 255, 0.2)',
             'borderwidth': 1,
             'font': {'color': '#f8f9fa'},
         },
-        margin={'t': 56, 'l': 24, 'b': 56, 'r': 24},
+        margin={'t': 88, 'l': 24, 'b': 56, 'r': 24},
         hoverlabel={'bgcolor': '#0f172a', 'font': {'color': '#f8f9fa'}},
     )
     figure.update_xaxes(
@@ -352,7 +357,7 @@ def mark_selected_periods(
                 'hovertemplate': time_context.hovertemplate,
                 'name': cont_signal,
                 'meta': {'uid': period_index},
-                'line': {'color': '#22c55e'},
+                'line': {'color': '#22c55e', 'width': 3},
                 'showlegend': False,
             }
             if cont_signal != RAW_EIT_LABEL:

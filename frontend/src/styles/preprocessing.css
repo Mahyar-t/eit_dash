@@ -1,0 +1,188 @@
+/* Pre-processing tab: shared compact spacer used between stacked controls */
+.compact-spacer {
+  height: 0.7rem;
+}
+
+.preprocessing-sync-placeholder {
+  display: block;
+}
+
+.preprocessing-panel-copy {
+  margin-bottom: 1rem;
+}
+
+.preprocessing-action-grid {
+  gap: 0.7rem;
+}
+
+.preprocessing-inline-error {
+  margin-top: 0.85rem;
+  color: #7a1d1d;
+}
+
+/* Pre-processing tab: summary/results stacks keep the old vertical card rhythm */
+.preprocessing-summary-stack,
+.preprocessing-results-stack {
+  display: grid;
+  gap: 1rem;
+}
+
+/* Pre-processing tab: modal shell sizing and footer alignment */
+.preprocessing-modal {
+  width: min(920px, calc(100vw - 3rem));
+  aspect-ratio: auto;
+  max-height: calc(100vh - 88px);
+}
+
+.preprocessing-modal--wide {
+  width: min(1120px, calc(100vw - 3rem));
+}
+
+.preprocessing-period-modal {
+  height: min(860px, calc(100vh - 88px));
+}
+
+.preprocessing-modal .modal-header,
+.preprocessing-modal .modal-body {
+  padding-left: 1.1rem;
+  padding-right: 1.1rem;
+}
+
+.preprocessing-modal .modal-body {
+  min-height: 0;
+  padding-bottom: 1.1rem;
+}
+
+.preprocessing-modal-footer {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  padding: 0.9rem 1.1rem 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgb(223, 227, 230);
+}
+
+/* Pre-processing tab: signal selection pills in the period modal */
+.signal-checklist {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.check-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.7rem 0.9rem;
+  background: rgba(255, 255, 255, 0.24);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+}
+
+.preprocessing-period-preview {
+  min-width: 0;
+  min-height: 430px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(15, 23, 42, 0.06);
+}
+
+.preprocessing-period-preview .dash-graph,
+.preprocessing-period-preview .js-plotly-plot {
+  min-height: 430px;
+}
+
+.preprocessing-period-name {
+  margin-top: 0.15rem;
+}
+
+/* Pre-processing tab: filter parameters and result preview layout */
+.preprocessing-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.preprocessing-filter-apply {
+  justify-self: start;
+  min-width: 160px;
+}
+
+.preprocessing-filter-confirm-row {
+  display: flex;
+  justify-content: flex-start;
+}
+
+/* Pre-processing tab: card/detail tuning for closer Dash parity */
+.mini-card {
+  padding: 1rem;
+}
+
+.mini-card__header {
+  font-weight: 700;
+}
+
+.preprocessing-summary-stack .info-card,
+.preprocessing-results-stack .info-card {
+  padding: 0.95rem;
+}
+
+.preprocessing-summary-stack .card-title,
+.preprocessing-results-stack .card-title {
+  font-size: 1rem;
+}
+
+.preprocessing-summary-stack .info-table,
+.preprocessing-results-stack .info-table {
+  margin-top: 0.55rem;
+}
+
+.preprocessing-summary-stack .info-table__label,
+.preprocessing-results-stack .info-table__label {
+  padding-top: 0.3rem;
+  padding-bottom: 0.3rem;
+}
+
+.preprocessing-summary-stack .info-table__value,
+.preprocessing-results-stack .info-table__value {
+  padding-top: 0.3rem;
+  padding-bottom: 0.3rem;
+}
+
+/* Pre-processing tab: responsive layout keeps modals and filter grid usable on narrower screens */
+@media (max-width: 992px) {
+  .preprocessing-filter-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .preprocessing-modal,
+  .preprocessing-modal--wide {
+    width: min(1000px, calc(100vw - 1.25rem));
+  }
+
+  .preprocessing-period-modal {
+    height: min(820px, calc(100vh - 88px));
+  }
+}
+
+@media (max-width: 576px) {
+  .preprocessing-period-modal {
+    height: calc(100vh - 88px);
+  }
+
+  .preprocessing-period-preview,
+  .preprocessing-period-preview .dash-graph,
+  .preprocessing-period-preview .js-plotly-plot {
+    min-height: 320px;
+  }
+
+  .preprocessing-modal-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .preprocessing-filter-apply {
+    width: 100%;
+    justify-self: stretch;
+  }
+}

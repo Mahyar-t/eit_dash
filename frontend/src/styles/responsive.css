@@ -1,0 +1,133 @@
+/* Responsive adjustments: tablet and below */
+@media (max-width: 992px) {
+  .app-shell {
+    width: min(100% - 20px, 100%);
+    margin: calc(var(--navbar-height) + 18px) auto 0;
+    min-height: 0;
+  }
+
+  body.navbar-hidden .app-shell {
+    margin-top: 18px;
+    min-height: 0;
+  }
+
+  .top-navbar {
+    gap: 12px;
+    padding: 0 16px;
+  }
+
+  .top-navbar__links {
+    display: none;
+  }
+
+  .app-logo-text {
+    left: 56px;
+    gap: 8px;
+    font-size: 0.92rem;
+  }
+
+  .app-logo-img {
+    height: 42px;
+  }
+
+  .app-header,
+  .glass-panel,
+  .workflow-section,
+  .page-hero {
+    padding: 1.1rem;
+  }
+
+  .process-stepper {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    margin-bottom: 0.75rem;
+  }
+
+  .process-tab,
+  .process-tab.active {
+    width: 100%;
+    min-height: 68px;
+  }
+
+  .process-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .process-footer-spacer {
+    display: none;
+  }
+
+  .process-nav-button,
+  .button-stretch {
+    width: 100%;
+  }
+}
+
+/* Responsive adjustments: mobile */
+@media (max-width: 576px) {
+  .app-shell {
+    width: calc(100% - 16px);
+  }
+
+  .top-navbar {
+    height: 60px;
+    padding: 0 12px;
+  }
+
+  .app-logo-text {
+    left: 52px;
+    font-size: 0.84rem;
+  }
+
+  .app-logo-img {
+    height: 36px;
+  }
+
+  .app-title {
+    font-size: 1.3rem;
+  }
+
+  .page-intro,
+  .panel-copy,
+  .field-meta {
+    font-size: 0.95rem;
+    line-height: 1.45;
+  }
+
+  .process-tab,
+  .process-tab.active {
+    min-height: 60px;
+    padding: 0.8rem 1rem;
+  }
+
+  .process-tab-label,
+  .process-tab.active .process-tab-label {
+    font-size: 0.95rem;
+    letter-spacing: 0.03em;
+    white-space: normal;
+  }
+
+  .workflow-section,
+  .glass-panel,
+  .app-header,
+  .page-hero {
+    padding: 0.95rem;
+  }
+
+  .form-row,
+  .button-grid,
+  .panel-header {
+    grid-template-columns: 1fr;
+    flex-direction: column;
+  }
+
+  .button-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .browser-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

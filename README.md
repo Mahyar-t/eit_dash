@@ -105,6 +105,19 @@ and follow the link displayed.
 poetry run python eit_dash/main.py
 ```
 
+##### Preview the next web stack
+
+An additive FastAPI plus React preview is available alongside the current Dash application. It now restores the full three-step workflow shape for loading, preprocessing, and analysis while reusing the existing Python logic behind those stages.
+
+```console
+poetry run eit-dash run-api
+cd frontend
+npm install
+npm run dev
+```
+
+See [docs/web_preview.md](docs/web_preview.md) for details.
+
 ## Documentation
 
 Include a link to your project's full documentation here.

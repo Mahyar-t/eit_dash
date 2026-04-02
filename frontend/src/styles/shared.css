@@ -1,0 +1,318 @@
+/* Shared page containers */
+.page-shell {
+  display: grid;
+  gap: 1.2rem;
+  min-width: 0;
+}
+
+.stage-card {
+  padding: 0;
+  overflow: hidden;
+  position: relative;
+  border-color: var(--card-border);
+  background: var(--card-fill);
+}
+
+.page-hero {
+  padding: 1.55rem 1.7rem 1.2rem;
+}
+
+.page-kicker {
+  margin: 0 0 0.7rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.page-intro,
+.panel-copy,
+.field-meta {
+  margin: 0;
+}
+
+/* Shared glass surfaces */
+.glass-panel {
+  width: 100%;
+  padding: 1.4rem;
+  border: 1px solid var(--card-border);
+  background: var(--card-fill-strong);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(24px);
+  min-width: 0;
+}
+
+.glass-panel--results {
+  margin-top: 1rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 12px 24px rgba(var(--ocean-1-rgb), 0.1);
+  backdrop-filter: blur(14px);
+}
+
+.glass-card,
+.mini-card {
+  border: 1px solid var(--card-border);
+  background: var(--card-fill);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(20px);
+}
+
+/* Shared card and table primitives */
+.info-card {
+  padding: 1rem;
+}
+
+.info-card__body {
+  display: grid;
+  gap: 0.42rem;
+}
+
+.info-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.card-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.info-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.75rem;
+  font-size: 0.88rem;
+}
+
+.info-table tr {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.info-table tr:last-child {
+  border-bottom: 0;
+}
+
+.info-table__label {
+  width: 32%;
+  padding: 0.35rem 0.8rem 0.35rem 0;
+  white-space: nowrap;
+  vertical-align: top;
+  font-weight: 600;
+}
+
+.info-table__value {
+  padding: 0.35rem 0 0.35rem 0.2rem;
+  word-break: break-all;
+  vertical-align: top;
+}
+
+.glass-card__action {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.7rem 1rem;
+  border: 1px solid var(--card-border);
+  background: rgba(255, 255, 255, 0.25);
+  font-weight: 700;
+}
+
+.info-card__remove {
+  min-height: 40px;
+  padding: 0.65rem 1rem;
+  flex: 0 0 auto;
+}
+
+/* Shared workflow layout */
+.workflow-board {
+  padding: 0;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.workflow-section {
+  padding: 1.4rem 1.5rem;
+}
+
+.workflow-section + .workflow-section {
+  position: relative;
+}
+
+.workflow-section + .workflow-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 1.5rem;
+  right: 1.5rem;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.04));
+}
+
+.workflow-section--feature {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.section-heading {
+  margin: 0 0 0.7rem;
+  text-align: left;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.92rem;
+}
+
+/* Shared form controls */
+.action-stack {
+  display: grid;
+}
+
+.action-stack--spaced {
+  margin-top: 1rem;
+  gap: 1rem;
+}
+
+.form-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: stretch;
+}
+
+.form-row--wide {
+  gap: 1rem;
+}
+
+.field-grow {
+  flex: 1 1 auto;
+}
+
+.form-control,
+.form-select {
+  width: 100%;
+  min-height: 52px;
+  padding: 0.8rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  background-color: rgba(255, 255, 255, 0.35);
+  box-shadow: 0 12px 24px rgba(var(--ocean-1-rgb), 0.1);
+  backdrop-filter: blur(14px);
+}
+
+.form-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 3.2rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23000000' d='M1.41.59 6 5.17 10.59.59 12 2l-6 6-6-6z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.9rem center;
+  background-size: 12px 8px;
+}
+
+.glass-input {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Shared buttons */
+.glass-button,
+.process-nav-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  min-height: 52px;
+  padding: 0.9rem 1.2rem;
+  border: 1px solid var(--card-border);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-decoration: none;
+  color: var(--ink);
+  background: var(--card-fill-strong);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(14px);
+}
+
+.glass-button:hover,
+.process-nav-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 30px rgba(var(--ocean-1-rgb), 0.12);
+}
+
+.glass-button--primary,
+.process-nav-button--next {
+  background: rgba(255, 255, 255, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+.glass-button--secondary {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.glass-button--ghost,
+.process-nav-button--back {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.button-stretch {
+  min-width: 160px;
+}
+
+.button-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+/* Shared content groupings */
+.card-stack,
+.preview-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.panel-title {
+  margin: 0 0 0.7rem;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.label-row {
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.3;
+  word-break: break-all;
+}
+
+.value-row {
+  margin: 0.15rem 0 0;
+  font-size: 1rem;
+}
+
+.value-row--break {
+  word-break: break-all;
+}
+
+/* Shared workflow footer */
+.process-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.5rem;
+}
+
+.process-footer-spacer {
+  flex: 1 1 auto;
+}
+
+/* Shared chart wrappers */
+.js-plotly-plot,
+.dash-graph {
+  width: 100%;
+  min-width: 0;
+}

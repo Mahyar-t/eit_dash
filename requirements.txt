@@ -1,0 +1,15 @@
+# Runtime dependencies for the Python package.
+# Install with: pip install -r requirements.txt
+#
+# Frontend dependencies are managed separately with npm:
+#   cd frontend && npm install
+
+dash[testing]>=2.11.1,<3.0.0
+dash-bootstrap-components>=1.4.1,<2.0.0
+eitprocessing>=1.0.2,<2.0.0
+numpy>=1.25.2,<2.0.0
+pandas>=2.0.3,<3.0.0
+click>=8.1.7,<9.0.0
+fastapi>=0.110,<1.0
+uvicorn[standard]>=0.29,<1.0
+orjson>=3.10,<4.0

@@ -1,0 +1,229 @@
+/* Analyze tab: section rhythm and error handling */
+.analyze-panel-copy {
+  margin-bottom: 1rem;
+}
+
+.analyze-field-title {
+  margin: 0 0 0.8rem;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.analyze-inline-error {
+  margin-top: 0.85rem;
+  color: #7a1d1d;
+}
+
+.analyze-alert {
+  margin-top: 0.85rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.22);
+  font-weight: 600;
+}
+
+.analyze-alert--success {
+  color: #0f5a35;
+  background: rgba(34, 197, 94, 0.12);
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.analyze-alert--warning {
+  color: #7a4f00;
+  background: rgba(234, 179, 8, 0.14);
+  border-color: rgba(234, 179, 8, 0.3);
+}
+
+.analyze-alert--danger {
+  color: #7a1d1d;
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+/* Analyze tab: summary/results stacks keep the old card cadence */
+.analyze-summary-stack,
+.analyze-results-stack {
+  display: grid;
+  gap: 1rem;
+}
+
+.analyze-results-panel {
+  display: grid;
+  gap: 1rem;
+}
+
+.analyze-empty-results {
+  margin: 0;
+}
+
+/* Analyze tab: accordion structure mirrors the old grouped collections */
+.analyze-accordion-stack {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.analyze-accordion {
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.analyze-accordion__summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 1rem 1.1rem;
+  font-weight: 700;
+}
+
+.analyze-accordion__summary::-webkit-details-marker {
+  display: none;
+}
+
+.analyze-accordion__body {
+  display: grid;
+  gap: 1rem;
+  padding: 0 1rem 1rem;
+}
+
+/* Analyze tab: card and table tuning */
+.analyze-card {
+  padding: 1rem;
+}
+
+.analyze-table + .analyze-table {
+  margin-top: 0.8rem;
+}
+
+/* Analyze tab: Plotly result frames */
+.analyze-plot {
+  width: 100%;
+  min-height: 460px;
+  margin-top: 0.9rem;
+  overflow: hidden;
+}
+
+.analyze-plot .js-plotly-plot,
+.analyze-plot .plot-container,
+.analyze-plot .svg-container {
+  width: 100% !important;
+}
+
+.analyze-plot--playback {
+  min-height: 800px;
+}
+
+/* Analyze tab: playback controls restored from the Dash experience */
+.analyze-playback-card {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 0.9rem;
+}
+
+.analyze-playback__controls {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.playback-btn {
+  min-height: 32px;
+  padding: 0.25rem 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  transition:
+    background 130ms ease,
+    border-color 130ms ease,
+    color 130ms ease,
+    transform 100ms ease;
+}
+
+.playback-btn--primary {
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.6);
+  background: rgba(56, 189, 248, 0.08);
+}
+
+.playback-btn--primary:hover,
+.playback-btn--primary:focus {
+  color: #f0f9ff;
+  border-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.22);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(56, 189, 248, 0.2);
+}
+
+.playback-btn--secondary {
+  color: #94a3b8;
+  border-color: rgba(148, 163, 184, 0.45);
+  background: rgba(148, 163, 184, 0.06);
+}
+
+.playback-btn--secondary:hover,
+.playback-btn--secondary:focus {
+  color: #e2e8f0;
+  border-color: rgba(148, 163, 184, 0.8);
+  background: rgba(148, 163, 184, 0.16);
+  transform: translateY(-1px);
+}
+
+.analyze-frame-control {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.analyze-frame-control__label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+.analyze-frame-control__input {
+  width: 120px;
+  min-height: 32px;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.22);
+}
+
+@media (max-width: 992px) {
+  .analyze-plot {
+    min-height: 360px;
+  }
+
+  .analyze-plot--playback {
+    min-height: 560px;
+  }
+}
+
+@media (max-width: 576px) {
+  .analyze-accordion__summary {
+    padding: 0.9rem 1rem;
+  }
+
+  .analyze-accordion__body {
+    padding: 0 0.9rem 0.9rem;
+  }
+
+  .analyze-playback__controls,
+  .analyze-frame-control {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .analyze-frame-control__input {
+    width: 100%;
+  }
+
+  .analyze-plot {
+    min-height: 320px;
+  }
+
+  .analyze-plot--playback {
+    min-height: 420px;
+  }
+}

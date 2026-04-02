@@ -17,10 +17,12 @@ keywords = ["EIT - Electrical Impedance Tomography", "GUI"]
 packages = [
     { include = "eit_dash"},
     { include = "cli"},
+    { include = "backend"},
 ]
 
 [tool.poetry.scripts]
 eit-dash = "cli.cli:cli"
+eit-dash-api = "backend.__main__:main"
 
 [tool.poetry.urls]
 repository = "https://github.com/EIT-ALIVE/eit_dash"
@@ -35,6 +37,9 @@ numpy = "^1.25.2"
 pandas = "^2.0.3"
 ruff = "^0.4.9"
 click = "^8.1.7"
+fastapi = ">=0.110,<1.0"
+uvicorn = { extras = ["standard"], version = ">=0.29,<1.0" }
+orjson = ">=3.10,<4.0"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^7.4.0"

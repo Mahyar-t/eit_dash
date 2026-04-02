@@ -4,6 +4,10 @@ test_data
 # Mac
 .DS_Store
 
+# Frontend tooling
+node_modules/
+*.tsbuildinfo
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
