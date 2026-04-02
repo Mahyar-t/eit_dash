@@ -1,4 +1,4 @@
-# Development and test dependencies for the Python package.
+# Development, lint, and test dependencies for the Python package.
 # Install with: pip install -r requirements-dev.txt
 
 -r requirements.txt

@@ -3,6 +3,11 @@
 Visualize and manipulate EIT in a code free way using the open source
 [eitprocessing](https://github.com/EIT-ALIVE/eitprocessing) software.
 
+This repository currently contains two application entry points:
+
+- the original Dash application
+- the newer React + Vite frontend with a FastAPI backend that restores the three-step workflow for loading, preprocessing, and analysis
+
 **Important:** While the software code is open source, your data may not be. Once the dashboard is downloaded (and/or
 updated) on your local machine, no online interaction is needed. Your data remains local and is not shared or uploaded by
 this software.
@@ -19,8 +24,8 @@ this software.
 
 ##### Install EIT Dashboard
 
-The first time that the dashboard is used, the repository needs to be cloned and the package has to be
-installed as follows:
+The first time that the dashboard is used, the repository needs to be cloned and the Python package has to be
+installed locally as follows:
 
 - Create fresh environment
   - Make sure you are in your base environment: `conda activate`
@@ -31,18 +36,50 @@ installed as follows:
   - Install:
     - Run `pip install -e .`
 
+If you prefer explicit requirement files instead of an editable install:
+
+```console
+pip install -r requirements.txt
+```
+
 ### 2. Running EIT Dashboard
 
-To run the installed dashboard the following command can be used:
+##### Run the original Dash application
+
+To run the original Dash dashboard the following command can be used::
 
 ```console
 eit-dash run
 ```
+
 Open the resulting link in a browser (often something like `http://127.0.0.1:8050/`).
 Note that while the dashboard should work on any browser, if you are experiencing issues we recommend switching to
 Chrome or Firefox, as these are the browser where we do most of the testing.
 
-Please see our [user manual](docs/user_manual.md) for instructions on how to use the dashboard.
+##### Run the new web application
+
+The new web application uses:
+
+- a FastAPI backend for workflow/session APIs
+- a React + Vite frontend for the user interface
+
+Start the backend from the repository root:
+
+```console
+eit-dash run-api
+```
+
+Then start the frontend in a second terminal:
+
+```console
+cd frontend
+npm install
+npm run dev
+```
+
+Open the Vite link shown in the terminal, usually `http://127.0.0.1:5173/`.
+
+Please see our [user manual](docs/user_manual.md) for instructions on how to use the dashboard and [docs/web_preview.md](docs/web_preview.md) for details on the new web stack.
 
 ## For developers
 
@@ -84,6 +121,20 @@ cd eit_dash
 poetry install
 ```
 
+If you want the pip-based equivalent instead of Poetry:
+
+```console
+pip install -r requirements.txt
+pip install -r requirements-dev.txt
+```
+
+For the frontend:
+
+```console
+cd frontend
+npm install
+```
+
 ### 2. Running EIT Dashboard
 
 ##### Stay up to date
@@ -96,18 +147,18 @@ git pull
 poetry install
 ```
 
-##### Run dashboard
+##### Run the Dash application
 
-Run the command below to run the dashboard with the latest change made in the code, 
+Run the command below to run the dashboard with the latest change made in the code,
 and follow the link displayed.
 
 ```console
-poetry run python eit_dash/main.py
+poetry run eit-dash run
 ```
 
-##### Preview the next web stack
+##### Run the new web stack
 
-An additive FastAPI plus React preview is available alongside the current Dash application. It now restores the full three-step workflow shape for loading, preprocessing, and analysis while reusing the existing Python logic behind those stages.
+The React + Vite frontend and FastAPI backend now restore the three-step workflow for loading, preprocessing, and analysis while reusing the existing Python logic behind those stages.
 
 ```console
 poetry run eit-dash run-api
@@ -120,7 +171,8 @@ See [docs/web_preview.md](docs/web_preview.md) for details.
 
 ## Documentation
 
-Include a link to your project's full documentation here.
+- User guide: [docs/user_manual.md](docs/user_manual.md)
+- Web stack notes: [docs/web_preview.md](docs/web_preview.md)
 
 ## Contributing
 

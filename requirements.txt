@@ -1,4 +1,5 @@
 # Runtime dependencies for the Python package.
+# This covers the original Dash application and the FastAPI backend.
 # Install with: pip install -r requirements.txt
 #
 # Frontend dependencies are managed separately with npm:
