@@ -302,7 +302,8 @@ def create_slider_figure(
         for key in dataset.sparse_data:
             if re.match('events', key):
                 for k, v in enumerate(dataset.sparse_data[key].values):
-                    annotation = {'text': f'{v.text}', 'textangle': -90}
+                    clean_text = str(v.text).replace('\x00', '').strip()
+                    annotation = {'text': clean_text, 'textangle': -90}
                     figure.add_vline(
                         x=dataset.sparse_data[key].time[k],
                         line_width=3,

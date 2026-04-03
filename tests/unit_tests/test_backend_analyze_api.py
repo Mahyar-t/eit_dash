@@ -82,7 +82,7 @@ def test_analyze_api_roundtrip(file_data):
     assert section_titles[2].startswith('Sparse Data (')
     assert section_titles[3] == 'Interval Data (0)'
     sparse_items = results_payload['sections'][2]['items']
-    assert 'continuous_eelis' in [item['title'] for item in sparse_items]
+    assert 'EELI' in [item['title'] for item in sparse_items]
 
     frame_response = client.post(
         f'/api/sessions/{session_id}/analyze/eit-frame-preview',

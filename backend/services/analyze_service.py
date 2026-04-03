@@ -35,6 +35,7 @@ from eit_dash.utils.time_axis import build_time_axis_context
 
 
 _ANALYZE_SPARSE_LABEL = 'continuous_eelis'
+_ANALYZE_SPARSE_TITLE = 'EELI'
 _HIDDEN_SPARSE_LABELS = {
     'minvalues_(draeger)',
     'maxvalues_(draeger)',
@@ -322,7 +323,7 @@ def _serialize_sparse_section(sequence, dataset_start_time: float, selection_sta
             continue
 
         card = {
-            'title': label,
+            'title': _ANALYZE_SPARSE_TITLE if label == _ANALYZE_SPARSE_LABEL else label,
             'tables': [
                 _serialize_rows(
                     [

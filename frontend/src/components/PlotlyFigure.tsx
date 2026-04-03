@@ -24,6 +24,10 @@ export function PlotlyFigure({ figure, className, style, onRelayout, onGraphRead
     }
 
     const graph = graphRef.current;
+    const previousHeight = graph.getBoundingClientRect().height;
+    if (previousHeight > 0) {
+      graph.style.minHeight = `${previousHeight}px`;
+    }
     const data = (figure.data as unknown[]) ?? [];
     const layout = (figure.layout as Record<string, unknown>) ?? {};
     const frames = (figure.frames as unknown[]) ?? [];
@@ -44,6 +48,11 @@ export function PlotlyFigure({ figure, className, style, onRelayout, onGraphRead
 
         if (frames.length && typeof Plotly.addFrames === 'function') {
           await Plotly.addFrames(graph, frames);
+        }
+
+        const nextHeight = graph.getBoundingClientRect().height;
+        if (nextHeight > 0) {
+          graph.style.minHeight = `${nextHeight}px`;
         }
 
         onGraphReady?.(graph);

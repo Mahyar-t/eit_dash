@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 
@@ -35,6 +35,7 @@ export function LoadPage() {
   const [customName, setCustomName] = useState("");
   const [datasets, setDatasets] = useState<LoadStateResponse["datasets"]>([]);
   const [isBusy, setIsBusy] = useState(false);
+  const preservedScrollY = useRef<number | null>(null);
 
   const loadState = useCallback(async () => {
     if (!session) {
@@ -73,6 +74,15 @@ export function LoadPage() {
       document.body.classList.remove("load-modal-open");
     };
   }, [modalOpen]);
+
+  useLayoutEffect(() => {
+    if (preservedScrollY.current === null) {
+      return;
+    }
+
+    window.scrollTo({ top: preservedScrollY.current, behavior: "auto" });
+    preservedScrollY.current = null;
+  }, [preview]);
 
   const openBrowser = useCallback(async () => {
     if (!session) {
@@ -193,6 +203,7 @@ export function LoadPage() {
         return;
       }
 
+      preservedScrollY.current = window.scrollY;
       setSelectedSignals(nextSelectedSignals);
       const response = await fetch(
         `/api/sessions/${session.session_id}/load/preview`,
@@ -208,7 +219,15 @@ export function LoadPage() {
       }
 
       const payload = (await response.json()) as PreviewResponse;
-      setPreview(payload);
+      setPreview((currentPreview) =>
+        currentPreview
+          ? {
+              ...currentPreview,
+              figure: payload.figure,
+              selected_signals: payload.selected_signals,
+            }
+          : payload,
+      );
     },
     [preview, session],
   );
