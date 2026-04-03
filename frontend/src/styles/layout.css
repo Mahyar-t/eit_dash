@@ -100,7 +100,7 @@ body.navbar-hidden .app-shell {
   gap: 10px;
   font-family: "JetBrains Mono", "Courier New", monospace;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: #ffffff;
@@ -220,6 +220,10 @@ body.navbar-hidden .app-shell {
   box-shadow: 16px 0 36px rgba(0, 0, 0, 0.14);
 }
 
+.sidebar-panel {
+  --sidebar-body-size: 1rem;
+}
+
 .sidebar-main {
   display: block;
 }
@@ -285,7 +289,7 @@ body.navbar-hidden .app-shell {
 
 .sidebar-copy {
   margin-top: 0.8rem;
-  font-size: 1.02rem;
+  font-size: var(--sidebar-body-size);
   line-height: 1.45;
   max-width: 22rem;
 }
@@ -313,7 +317,7 @@ body.navbar-hidden .app-shell {
   min-height: 3.35rem;
   padding: 0.85rem 0.95rem;
   font-family: "JetBrains Mono", "Courier New", monospace;
-  font-size: 1rem;
+  font-size: var(--sidebar-body-size);
   font-weight: 600;
   color: #000000;
   opacity: 0.84;
@@ -363,7 +367,7 @@ body.navbar-hidden .app-shell {
   align-items: center;
   gap: 0.5rem;
   margin-top: 0;
-  font-size: 0.84rem;
+  font-size: var(--sidebar-body-size);
   opacity: 0.72;
 }
 
@@ -376,9 +380,10 @@ body.navbar-hidden .app-shell {
 }
 
 .sidebar-github-link {
-  display: grid;
-  gap: 0.2rem;
+  display: flex;
+  align-items: center;
   margin-top: 0.95rem;
+  min-height: 3.35rem;
   padding: 0.85rem 0.95rem;
   border: 1px solid rgba(255, 255, 255, 0.28);
   background: rgba(255, 255, 255, 0.12);
@@ -401,16 +406,10 @@ body.navbar-hidden .app-shell {
 
 .sidebar-github-link__label {
   font-family: "JetBrains Mono", "Courier New", monospace;
-  font-size: 0.84rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-size: var(--sidebar-body-size);
+  font-weight: 600;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
-}
-
-.sidebar-github-link__url {
-  font-size: 0.9rem;
-  opacity: 0.72;
-  word-break: break-word;
 }
 
 /* Dashboard header */

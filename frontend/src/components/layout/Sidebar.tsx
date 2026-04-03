@@ -78,9 +78,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               <span className="sidebar-github-link__label">
                 GitHub repository
               </span>
-              <span className="sidebar-github-link__url">
-                github.com/EIT-ALIVE/eit_dash
-              </span>
             </a>
           </div>
         </div>

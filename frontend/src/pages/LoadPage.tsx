@@ -15,14 +15,14 @@ import type {
 } from "../types/load";
 
 const vendorOptions = [
-  { label: "Timpel", value: 0 },
   { label: "Draeger", value: 1 },
   { label: "Sentec", value: 2 },
+  { label: "Timpel", value: 0 },
 ] as const;
 
 export function LoadPage() {
   const { session, isLoading, error } = useSession();
-  const [vendorType, setVendorType] = useState<number>(2);
+  const [vendorType, setVendorType] = useState<number>(1);
   const [browser, setBrowser] = useState<BrowserResponse | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
