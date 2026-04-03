@@ -6,7 +6,9 @@ from typing import Any
 
 import numpy as np
 import plotly.graph_objects as go
+from eitprocessing.features.breath_detection import BreathDetection
 from eitprocessing.parameters.eeli import EELI
+from eitprocessing.parameters.tidal_impedance_variation import TIV
 
 from backend.services.load_service import serialize_dataset
 from backend.services.preprocessing_service import _serialize_filter_card, _serialize_period_card
@@ -272,6 +274,9 @@ def _serialize_eit_section(sequence, dataset_start_time: float, selection_start_
 def _serialize_continuous_section(sequence, dataset_start_time: float, selection_start_time: float) -> dict[str, Any]:
     items = []
     for label, data in _collection_items(sequence.continuous_data):
+        if label not in {RAW_EIT_LABEL, FILTERED_EIT_LABEL}:
+            continue
+
         items.append(
             {
                 'title': label,
@@ -303,7 +308,7 @@ def _serialize_continuous_section(sequence, dataset_start_time: float, selection
         )
 
     return {
-        'title': f'Continuous Data ({len(sequence.continuous_data)})',
+        'title': f'Continuous Data ({len(items)})',
         'items': items,
         'empty_message': 'No continuous outputs available for this period.' if not items else None,
     }
@@ -337,7 +342,7 @@ def _serialize_sparse_section(sequence, dataset_start_time: float, selection_sta
             card['figures'].append(
                 {
                     'role': 'plot',
-                        'figure': _serialize_figure(
+                    'figure': _serialize_figure(
                         _build_analyze_sparse_numeric_figure(sequence, label, data, dataset_start_time, selection_start_time),
                     ),
                 },
@@ -357,6 +362,10 @@ def _serialize_sparse_section(sequence, dataset_start_time: float, selection_sta
             card['tables'].append(_serialize_rows(_sparse_preview_rows(data)))
 
         items.append(card)
+        if label == _ANALYZE_SPARSE_LABEL:
+            tiv_card = _build_tiv_card(sequence, dataset_start_time, selection_start_time)
+            if tiv_card is not None:
+                items.append(tiv_card)
 
     return {
         'title': f'Sparse Data ({len(items)})',
@@ -493,6 +502,146 @@ def _build_analyze_sparse_numeric_figure(sequence, label: str, data, dataset_sta
         showlegend=True,
     )
     return apply_figure_theme(figure)
+
+
+def _build_continuous_tiv_reference_figure(sequence, dataset_start_time: float, selection_start_time: float):
+    signal = _select_signal(sequence)
+    if signal is None:
+        return go.Figure()
+
+    breaths = BreathDetection().find_breaths(signal)
+    tiv_data = TIV().compute_continuous_parameter(signal, store=False)
+
+    signal_time_context = build_time_axis_context(
+        signal.time,
+        dataset_start_time=dataset_start_time,
+        selection_start_time=selection_start_time,
+        y_suffix="<br>Value: %{y:.3f}<extra></extra>",
+    )
+
+    breath_values = list(breaths.values)
+    start_times = np.asarray([breath.start_time for breath in breath_values], dtype=float)
+    middle_times = np.asarray([breath.middle_time for breath in breath_values], dtype=float)
+    end_times = np.asarray([breath.end_time for breath in breath_values], dtype=float)
+
+    start_indices = np.searchsorted(signal.time, start_times)
+    middle_indices = np.searchsorted(signal.time, middle_times)
+    end_indices = np.searchsorted(signal.time, end_times)
+
+    max_index = len(signal.values) - 1
+    start_indices = np.clip(start_indices, 0, max_index)
+    middle_indices = np.clip(middle_indices, 0, max_index)
+    end_indices = np.clip(end_indices, 0, max_index)
+
+    tiv_times = np.asarray(tiv_data.time, dtype=float)
+    tiv_values = np.asarray(tiv_data.values, dtype=float)
+    tiv_indices = np.searchsorted(signal.time, tiv_times)
+    tiv_indices = np.clip(tiv_indices, 0, max_index)
+    tiv_top = np.asarray(signal.values, dtype=float)[tiv_indices]
+    tiv_bottom = tiv_top - tiv_values
+
+    tiv_x: list[float | None] = []
+    tiv_y: list[float | None] = []
+    for time_value, bottom_value, top_value in zip(tiv_times, tiv_bottom, tiv_top, strict=True):
+        tiv_x.extend([float(time_value), float(time_value), None])
+        tiv_y.extend([float(bottom_value), float(top_value), None])
+
+    figure = go.Figure()
+    figure.add_trace(
+        go.Scatter(
+            x=signal_time_context.x,
+            y=signal.values,
+            customdata=signal_time_context.customdata,
+            hovertemplate=signal_time_context.hovertemplate,
+            name=signal.label,
+        )
+    )
+
+    if len(start_times):
+        figure.add_trace(
+            go.Scatter(
+                x=start_times,
+                y=np.asarray(signal.values, dtype=float)[start_indices],
+                mode="markers",
+                marker={"symbol": "star", "size": 10, "color": "rgba(255, 0, 0, 1)"},
+                name="Start Indices",
+            )
+        )
+
+    if len(middle_times):
+        figure.add_trace(
+            go.Scatter(
+                x=middle_times,
+                y=np.asarray(signal.values, dtype=float)[middle_indices],
+                mode="markers",
+                marker={"symbol": "circle", "color": "rgba(0, 255, 0, 1)"},
+                name="Middle Indices",
+            )
+        )
+
+    if len(end_times):
+        figure.add_trace(
+            go.Scatter(
+                x=end_times,
+                y=np.asarray(signal.values, dtype=float)[end_indices],
+                mode="markers",
+                marker={"symbol": "x", "size": 7, "color": "rgba(0, 255, 255, 1)"},
+                name="End Indices",
+            )
+        )
+
+    if tiv_x:
+        figure.add_trace(
+            go.Scatter(
+                x=tiv_x,
+                y=tiv_y,
+                mode="lines",
+                name="TIV",
+            )
+        )
+
+    figure.update_layout(
+        title="Continuous tidal impedance variation",
+        xaxis={"title": signal_time_context.axis_title},
+        yaxis={"title": f"{signal.category} ({signal.unit})" if signal.unit else signal.category},
+        showlegend=True,
+    )
+    return apply_figure_theme(figure)
+
+
+def _build_tiv_card(sequence, dataset_start_time: float, selection_start_time: float) -> dict[str, Any] | None:
+    signal = _select_signal(sequence)
+    if signal is None:
+        return None
+
+    tiv_data = TIV().compute_continuous_parameter(signal, store=False)
+    tiv_values = np.asarray(tiv_data.values, dtype=float)
+
+    return {
+        'title': 'TIV',
+        'tables': [
+            _serialize_rows(
+                [
+                    ('Name', tiv_data.name),
+                    ('Category', tiv_data.category),
+                    ('Unit', tiv_data.unit),
+                    ('Events', len(tiv_data)),
+                ],
+            ),
+        ],
+        'figures': [
+            {
+                'role': 'plot',
+                'figure': _serialize_figure(
+                    _build_continuous_tiv_reference_figure(
+                        sequence,
+                        dataset_start_time,
+                        selection_start_time,
+                    ),
+                ),
+            },
+        ],
+    }
 
 
 def _select_active_period(record: SessionRecord, period_options: list[dict[str, int | str]]) -> int | None:

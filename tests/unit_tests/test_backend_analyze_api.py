@@ -118,7 +118,7 @@ def test_analyze_api_prefers_filtered_signal_when_available(file_data):
         def compute_parameter(self, signal):
             StubEELI.seen_label = signal.label
             return SparseData(
-                label='continuous_eelis',
+                label='EELI',
                 name='End-expiratory lung impedance (EELI)',
                 unit=None,
                 category='impedance',
