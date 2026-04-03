@@ -317,7 +317,7 @@ export function LoadPage() {
   );
 
   return (
-    <div className="page-shell">
+    <div className="page-shell page-shell--workflow">
       <div className="stage-card glass-panel">
         <div className="page-hero">
           <h2 className="page-kicker">Load Data</h2>

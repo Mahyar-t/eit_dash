@@ -427,7 +427,7 @@ export function PreprocessingPage() {
   }, [cutoffHigh, cutoffLow, filterOrder, filterType]);
 
   return (
-    <div className="page-shell">
+    <div className="page-shell page-shell--workflow">
       <div className="stage-card glass-panel">
         <div className="page-hero">
           <p className="page-kicker">Pre-processing steps</p>
@@ -520,7 +520,7 @@ export function PreprocessingPage() {
             <span>Next</span>
             <span>&gt;</span>
           </Link>
-        </div>
+          </div>
       </div>
 
       {periodModalOpen

@@ -147,7 +147,7 @@ export function AnalyzePage() {
   );
 
   return (
-    <div className="page-shell">
+    <div className="page-shell page-shell--workflow">
       <div className="stage-card glass-panel">
         <div className="page-hero">
           <p className="page-kicker">Analyze Data</p>

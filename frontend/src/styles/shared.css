@@ -5,6 +5,10 @@
   min-width: 0;
 }
 
+.page-shell--workflow {
+  gap: 0;
+}
+
 .stage-card {
   padding: 0;
   overflow: hidden;

@@ -36,6 +36,10 @@
   min-width: 0;
 }
 
+.app-page-wrapper--dashboard {
+  width: 100%;
+}
+
 .route-stage {
   min-width: 0;
   animation: route-stage-enter 160ms ease-out;
@@ -439,6 +443,19 @@ body.navbar-hidden .app-shell {
 }
 
 /* Dashboard header */
+.dashboard-workflow-shell {
+  display: grid;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.dashboard-workflow-shell__header {
+  display: grid;
+  gap: 1.25rem;
+  padding: 1.5rem 1.5rem 0;
+}
+
 .app-header {
   display: grid;
   gap: 1rem;
@@ -449,6 +466,15 @@ body.navbar-hidden .app-shell {
   backdrop-filter: blur(22px);
   overflow: visible;
   margin-bottom: 1.5rem;
+}
+
+.app-header--embedded {
+  padding: 0;
+  margin-bottom: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
 }
 
 .app-brand {
@@ -478,7 +504,7 @@ body.navbar-hidden .app-shell {
   display: flex;
   gap: 2px;
   align-items: flex-end;
-  margin-bottom: -1px;
+  margin-bottom: 0;
   position: relative;
   z-index: 10;
   width: min(100%, 760px);
@@ -545,6 +571,10 @@ body.navbar-hidden .app-shell {
 .process-tab.active .process-tab-label {
   font-size: 1.1rem;
   letter-spacing: 0.08em;
+}
+
+.route-stage--dashboard {
+  padding-bottom: 0.3rem;
 }
 
 /* Footer */

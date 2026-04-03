@@ -126,25 +126,33 @@ export function AppShell() {
 
       <div className="app-shell">
         {showDashboardShell ? (
-          <div id="dashboard-shell">
-            <div className="app-header">
-              <div className="app-brand">
-                <h1 className="app-title">EIT Dashboard</h1>
-                <p className="app-subtitle">
-                  A local workflow for loading, preparing, and analyzing EIT data. Loaded datasets and selections will
-                  appear across all modules as you progress through the tab steps.
-                </p>
+          <div id="dashboard-shell" className="dashboard-workflow-shell glass-panel">
+            <div className="dashboard-workflow-shell__header">
+              <div className="app-header app-header--embedded">
+                <div className="app-brand">
+                  <h1 className="app-title">EIT Dashboard</h1>
+                  <p className="app-subtitle">
+                    A local workflow for loading, preparing, and analyzing EIT data. Loaded datasets and selections
+                    will appear across all modules as you progress through the tab steps.
+                  </p>
+                </div>
+              </div>
+              <ProcessStepper />
+            </div>
+
+            <div className="app-page-wrapper app-page-wrapper--dashboard">
+              <div key={location.pathname} className="route-stage route-stage--dashboard">
+                <Outlet />
               </div>
             </div>
-            <ProcessStepper />
           </div>
-        ) : null}
-
-        <div className="app-page-wrapper">
-          <div key={location.pathname} className="route-stage">
-            <Outlet />
+        ) : (
+          <div className="app-page-wrapper">
+            <div key={location.pathname} className="route-stage">
+              <Outlet />
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <footer className="app-footer" id="app-footer">
