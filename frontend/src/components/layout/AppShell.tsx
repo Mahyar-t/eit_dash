@@ -98,7 +98,9 @@ export function AppShell() {
         ) : null}
 
         <div className="app-page-wrapper">
-          <Outlet />
+          <div key={location.pathname} className="route-stage">
+            <Outlet />
+          </div>
         </div>
       </div>
 
