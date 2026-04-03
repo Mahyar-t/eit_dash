@@ -99,10 +99,22 @@ export function AppShell() {
 
     updateScrollbarWidth();
     const frameId = window.requestAnimationFrame(updateScrollbarWidth);
+    const secondFrameId = window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(updateScrollbarWidth);
+    });
+
+    const resizeObserver = new ResizeObserver(() => {
+      window.requestAnimationFrame(updateScrollbarWidth);
+    });
+    resizeObserver.observe(document.documentElement);
+    resizeObserver.observe(document.body);
+
     window.addEventListener('resize', updateScrollbarWidth);
 
     return () => {
       window.cancelAnimationFrame(frameId);
+      window.cancelAnimationFrame(secondFrameId);
+      resizeObserver.disconnect();
       window.removeEventListener('resize', updateScrollbarWidth);
     };
   }, [location.pathname]);
