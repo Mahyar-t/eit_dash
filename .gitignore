@@ -1,5 +1,8 @@
 # Data
-test_data
+test_data/*
+!test_data/
+!test_data/draeger_synthetic_draeger_20Hz.bin
+
 
 # Mac
 .DS_Store
