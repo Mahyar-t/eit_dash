@@ -168,8 +168,8 @@ body.navbar-hidden .app-shell {
   opacity: 1;
   transform: scale(1.05);
   text-shadow:
-    0 0 5px rgba(255, 255, 255, 1),
-    0 0 10px rgba(255, 255, 255, 0.8);
+    0 0 1px rgba(255, 255, 255, 1),
+    0 0 5px rgba(255, 255, 255, 0.5);
   filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.2));
 }
 
@@ -215,7 +215,11 @@ body.navbar-hidden .app-shell {
   border-bottom: 0;
   padding: 1.35rem 1.15rem 1.1rem;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0.18)),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.32),
+      rgba(255, 255, 255, 0.18)
+    ),
     rgba(255, 255, 255, 0.16);
   box-shadow: 16px 0 36px rgba(0, 0, 0, 0.14);
 }
