@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 
 import logo from '../../assets/logo.png';
@@ -74,6 +74,37 @@ export function AppShell() {
 
   useEffect(() => {
     document.body.classList.remove('navbar-hidden');
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if ('scrollRestoration' in window.history) {
+      const previousMode = window.history.scrollRestoration;
+      window.history.scrollRestoration = 'manual';
+      return () => {
+        window.history.scrollRestoration = previousMode;
+      };
+    }
+    return undefined;
+  }, []);
+
+  useLayoutEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [location.pathname]);
+
+  useLayoutEffect(() => {
+    const updateScrollbarWidth = () => {
+      const scrollbarWidth = Math.max(0, window.innerWidth - document.documentElement.clientWidth);
+      document.documentElement.style.setProperty('--page-scrollbar-width', `${scrollbarWidth}px`);
+    };
+
+    updateScrollbarWidth();
+    const frameId = window.requestAnimationFrame(updateScrollbarWidth);
+    window.addEventListener('resize', updateScrollbarWidth);
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      window.removeEventListener('resize', updateScrollbarWidth);
+    };
   }, [location.pathname]);
 
   return (

@@ -7,8 +7,10 @@ from typing import Any
 import numpy as np
 import plotly.graph_objects as go
 from eitprocessing.features.breath_detection import BreathDetection
+from eitprocessing.features.rate_detection import RateDetection
 from eitprocessing.parameters.eeli import EELI
 from eitprocessing.parameters.tidal_impedance_variation import TIV
+from plotly.subplots import make_subplots
 
 from backend.services.load_service import serialize_dataset
 from backend.services.preprocessing_service import _serialize_filter_card, _serialize_period_card
@@ -36,11 +38,13 @@ from eit_dash.utils.time_axis import build_time_axis_context
 
 _ANALYZE_SPARSE_LABEL = 'continuous_eelis'
 _ANALYZE_SPARSE_TITLE = 'EELI'
+_RATE_DETECTION_TITLE = 'RATE DETECTION'
 _HIDDEN_SPARSE_LABELS = {
     'minvalues_(draeger)',
     'maxvalues_(draeger)',
     'events_(draeger)',
 }
+_MINUTE = 60.0
 
 
 def build_analyze_state(record: SessionRecord) -> dict[str, Any]:
@@ -134,7 +138,6 @@ def build_analyze_results(record: SessionRecord, period_index: int | None) -> di
         'overview': _serialize_overview_card(sequence),
         'sections': [
             _serialize_eit_section(sequence, dataset_start_time, selection_start_time, period.period_index),
-            _serialize_continuous_section(sequence, dataset_start_time, selection_start_time),
             _serialize_sparse_section(sequence, dataset_start_time, selection_start_time),
             _serialize_interval_section(sequence),
         ],
@@ -367,6 +370,9 @@ def _serialize_sparse_section(sequence, dataset_start_time: float, selection_sta
             tiv_card = _build_tiv_card(sequence, dataset_start_time, selection_start_time)
             if tiv_card is not None:
                 items.append(tiv_card)
+            rate_detection_card = _build_rate_detection_card(sequence)
+            if rate_detection_card is not None:
+                items.append(rate_detection_card)
 
     return {
         'title': f'Sparse Data ({len(items)})',
@@ -643,6 +649,276 @@ def _build_tiv_card(sequence, dataset_start_time: float, selection_start_time: f
             },
         ],
     }
+
+
+def _build_rate_detection_card(sequence) -> dict[str, Any] | None:
+    raw_eit = sequence.eit_data.get('raw')
+    if raw_eit is None:
+        return None
+
+    rate_detection = RateDetection('adult')
+    captures: dict[str, Any] = {}
+
+    try:
+        estimated_respiratory_rate, estimated_heart_rate = rate_detection.apply(raw_eit, captures=captures)
+    except Exception:  # pragma: no cover - defensive card builder
+        return None
+
+    return {
+        'title': _RATE_DETECTION_TITLE,
+        'tables': [
+            _serialize_rows(
+                [
+                    ('Name', 'Rate Detection'),
+                    ('Subject type', rate_detection.subject_type),
+                    ('Signal source', raw_eit.label),
+                    ('Welch window', f'{rate_detection.welch_window:.1f} s'),
+                    ('Welch overlap', f'{rate_detection.welch_overlap:.2f}'),
+                    ('Refined frequency', 'Yes' if rate_detection.refine_estimated_frequency else 'No'),
+                    ('Respiratory rate', f'{estimated_respiratory_rate * _MINUTE:.1f} bpm'),
+                    ('Heart rate', f'{estimated_heart_rate * _MINUTE:.1f} bpm'),
+                ],
+            ),
+        ],
+        'figures': [
+            {
+                'role': 'plot',
+                'figure': _serialize_figure(
+                    _build_rate_detection_figure(rate_detection, captures),
+                ),
+            },
+        ],
+    }
+
+
+def _build_rate_detection_figure(rate_detection: RateDetection, captures: dict[str, Any]) -> go.Figure:
+    frequencies = np.asarray(captures['frequencies'], dtype=float)
+    normalized_total_power = np.asarray(captures['normalized_total_power'], dtype=float)
+    average_normalized_pixel_power = np.asarray(captures['average_normalized_pixel_power'], dtype=float)
+    diff_total_averaged_power = np.asarray(captures['diff_total_averaged_power'], dtype=float)
+    estimated_respiratory_rate = float(captures['estimated_respiratory_rate'])
+    estimated_heart_rate = float(captures['estimated_heart_rate'])
+
+    frequency_mask = frequencies < rate_detection.max_heart_rate * 1.25
+    frequencies_bpm = frequencies[frequency_mask] * _MINUTE
+
+    figure = make_subplots(
+        rows=3,
+        cols=1,
+        shared_xaxes=True,
+        vertical_spacing=0.2,
+        subplot_titles=(
+            'Normalized total power',
+            'Average normalized pixel power',
+            'Difference between averaged pixel power and total power',
+        ),
+    )
+
+    figure.add_trace(
+        go.Scatter(
+            x=frequencies_bpm,
+            y=normalized_total_power[frequency_mask],
+            mode='lines',
+            name='Normalized power',
+            line={'color': '#f8f9fa', 'width': 2},
+            legend='legend',
+        ),
+        row=1,
+        col=1,
+    )
+    figure.add_trace(
+        go.Scatter(
+            x=frequencies_bpm,
+            y=average_normalized_pixel_power[frequency_mask],
+            mode='lines',
+            name='Average normalized power',
+            line={'color': '#f8f9fa', 'width': 2},
+            showlegend=True,
+            legend='legend3',
+        ),
+        row=2,
+        col=1,
+    )
+    figure.add_trace(
+        go.Scatter(
+            x=frequencies_bpm,
+            y=diff_total_averaged_power[frequency_mask],
+            mode='lines',
+            name='Difference',
+            line={'color': '#f8f9fa', 'width': 2},
+            showlegend=True,
+            legend='legend2',
+        ),
+        row=3,
+        col=1,
+    )
+
+    rr_min = rate_detection.min_respiratory_rate * _MINUTE
+    rr_max = rate_detection.max_respiratory_rate * _MINUTE
+    hr_min = rate_detection.min_heart_rate * _MINUTE
+    hr_max = rate_detection.max_heart_rate * _MINUTE
+    rr_estimate = estimated_respiratory_rate * _MINUTE
+    hr_estimate = estimated_heart_rate * _MINUTE
+
+    figure.add_vrect(
+        x0=rr_min,
+        x1=rr_max,
+        fillcolor='rgba(255, 255, 255, 0.12)',
+        line_width=0,
+        row=1,
+        col=1,
+    )
+    figure.add_vline(
+        x=rr_estimate,
+        line_color='rgba(255, 80, 80, 1)',
+        line_width=2,
+        row=1,
+        col=1,
+    )
+    figure.add_vrect(
+        x0=hr_min,
+        x1=hr_max,
+        fillcolor='rgba(255, 255, 255, 0.12)',
+        line_width=0,
+        row=3,
+        col=1,
+    )
+    figure.add_vline(
+        x=hr_estimate,
+        line_color='rgba(255, 80, 80, 1)',
+        line_width=2,
+        row=3,
+        col=1,
+    )
+
+    figure.add_trace(
+        go.Scatter(
+            x=[None],
+            y=[None],
+            mode='lines',
+            name='RR range',
+            line={'color': 'rgba(255, 255, 255, 0.45)', 'width': 8},
+            hoverinfo='skip',
+            legend='legend',
+        )
+    )
+    figure.add_trace(
+        go.Scatter(
+            x=[None],
+            y=[None],
+            mode='lines',
+            name='Estimated RR',
+            line={'color': 'rgba(255, 80, 80, 1)', 'width': 2},
+            hoverinfo='skip',
+            legend='legend',
+        )
+    )
+    figure.add_trace(
+        go.Scatter(
+            x=[None],
+            y=[None],
+            mode='lines',
+            name='HR range',
+            line={'color': 'rgba(255, 255, 255, 0.45)', 'width': 8},
+            hoverinfo='skip',
+            showlegend=True,
+            legend='legend2',
+        )
+    )
+    figure.add_trace(
+        go.Scatter(
+            x=[None],
+            y=[None],
+            mode='lines',
+            name='Estimated HR',
+            line={'color': 'rgba(255, 80, 80, 1)', 'width': 2},
+            hoverinfo='skip',
+            showlegend=True,
+            legend='legend2',
+        )
+    )
+
+    figure.update_yaxes(title_text='Power (a.u.)', row=1, col=1)
+    figure.update_yaxes(title_text='Power (a.u.)', row=2, col=1)
+    figure.update_yaxes(title_text='Diff. (a.u.)', row=3, col=1)
+    figure.update_xaxes(title_text='Rate (bpm)', row=3, col=1)
+    figure.update_layout(
+        title='Rate Detection Results',
+        showlegend=True,
+        height=1020,
+        margin={'t': 88, 'l': 56, 'b': 72, 'r': 32},
+        legend={
+            'orientation': 'h',
+            'yanchor': 'bottom',
+            'y': 0.02,
+            'xanchor': 'right',
+            'x': 1,
+            'bgcolor': 'rgba(15, 23, 42, 0.9)',
+            'bordercolor': 'rgba(255, 255, 255, 0.2)',
+            'borderwidth': 1,
+            'font': {'color': '#f8f9fa'},
+        },
+        legend2={
+            'orientation': 'h',
+            'yanchor': 'bottom',
+            'y': 0.02,
+            'xanchor': 'right',
+            'x': 1,
+            'bgcolor': 'rgba(15, 23, 42, 0.9)',
+            'bordercolor': 'rgba(255, 255, 255, 0.2)',
+            'borderwidth': 1,
+            'font': {'color': '#f8f9fa'},
+        },
+        annotations=[
+            *figure.layout.annotations,
+            {
+                'x': rr_estimate,
+                'xref': 'x',
+                'y': 1.0,
+                'yref': 'paper',
+                'yshift': 12,
+                'text': f'{rr_estimate:.1f} bpm',
+                'showarrow': False,
+                'font': {'color': 'rgba(255, 80, 80, 1)'},
+            },
+            {
+                'x': hr_estimate,
+                'xref': 'x3',
+                'y': 0.0,
+                'yref': 'paper',
+                'yshift': -20,
+                'text': f'{hr_estimate:.1f} bpm',
+                'showarrow': False,
+                'font': {'color': 'rgba(255, 80, 80, 1)'},
+            },
+        ],
+    )
+    figure = apply_figure_theme(figure)
+    figure.update_layout(
+        legend={
+            'orientation': 'h',
+            'yanchor': 'bottom',
+            'y': 0.82,
+            'xanchor': 'right',
+            'x': 1,
+            'bgcolor': 'rgba(15, 23, 42, 0.9)',
+            'bordercolor': 'rgba(255, 255, 255, 0.2)',
+            'borderwidth': 1,
+            'font': {'color': '#f8f9fa'},
+        },
+        legend3={
+            'orientation': 'h',
+            'yanchor': 'bottom',
+            'y': 0.42,
+            'xanchor': 'right',
+            'x': 1,
+            'bgcolor': 'rgba(15, 23, 42, 0.9)',
+            'bordercolor': 'rgba(255, 255, 255, 0.2)',
+            'borderwidth': 1,
+            'font': {'color': '#f8f9fa'},
+        },
+    )
+    return figure
 
 
 def _select_active_period(record: SessionRecord, period_options: list[dict[str, int | str]]) -> int | None:

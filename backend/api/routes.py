@@ -115,7 +115,7 @@ class PreprocessingStateResponse(BaseModel):
 
 class PeriodPreviewRequest(BaseModel):
     dataset_index: int
-    selected_signals: list[int] = Field(default_factory=list)
+    selected_signals: list[int] | None = None
 
 
 class PeriodPreviewResponse(BaseModel):

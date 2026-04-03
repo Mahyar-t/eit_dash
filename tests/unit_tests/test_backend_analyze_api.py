@@ -78,11 +78,13 @@ def test_analyze_api_roundtrip(file_data):
     results_payload = results_response.json()
     section_titles = [section['title'] for section in results_payload['sections']]
     assert section_titles[0] == 'EIT Data (1)'
-    assert section_titles[1] == 'Continuous Data (1)'
-    assert section_titles[2].startswith('Sparse Data (')
-    assert section_titles[3] == 'Interval Data (0)'
-    sparse_items = results_payload['sections'][2]['items']
-    assert 'EELI' in [item['title'] for item in sparse_items]
+    assert section_titles[1].startswith('Sparse Data (')
+    assert section_titles[2] == 'Interval Data (0)'
+    sparse_items = results_payload['sections'][1]['items']
+    sparse_titles = [item['title'] for item in sparse_items]
+    assert 'EELI' in sparse_titles
+    assert 'TIV' in sparse_titles
+    assert 'RATE DETECTION' in sparse_titles
 
     frame_response = client.post(
         f'/api/sessions/{session_id}/analyze/eit-frame-preview',
