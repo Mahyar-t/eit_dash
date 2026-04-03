@@ -245,7 +245,7 @@ export function AnalyzePage() {
                       <details
                         key={section.title}
                         className="analyze-accordion"
-                        open
+                        open={!section.title.startsWith("Continuous Data")}
                       >
                         <summary className="analyze-accordion__summary">
                           {section.title}

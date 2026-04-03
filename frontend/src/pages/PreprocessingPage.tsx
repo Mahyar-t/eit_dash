@@ -68,6 +68,7 @@ export function PreprocessingPage() {
     unknown
   > | null>(null);
   const [filterConfirmEnabled, setFilterConfirmEnabled] = useState(false);
+  const [isFilterPreviewLocked, setIsFilterPreviewLocked] = useState(false);
 
   const anyModalOpen = periodModalOpen || filterModalOpen;
 
@@ -270,6 +271,7 @@ export function PreprocessingPage() {
     setSelectedFilterPeriod(null);
     setFilterFigure(null);
     setFilterConfirmEnabled(false);
+    setIsFilterPreviewLocked(false);
   }, []);
 
   const applyFilter = useCallback(async () => {
@@ -301,6 +303,7 @@ export function PreprocessingPage() {
     const payload = (await response.json()) as FilterApplyResponse;
     setFilterPeriodOptions(payload.period_options);
     setFilterConfirmEnabled(payload.confirm_enabled);
+    setIsFilterPreviewLocked(payload.period_options.length > 0);
 
     const firstPeriod = payload.period_options[0]?.value ?? null;
     setSelectedFilterPeriod(firstPeriod);
@@ -354,6 +357,32 @@ export function PreprocessingPage() {
     setSelectedPeriods(payload.selected_periods);
     setFilterCard(payload.filter_card);
     setFilterSavedAlert("Results have been saved");
+    setIsFilterPreviewLocked(false);
+    setFilterModalOpen(false);
+  }, [session]);
+
+  const cancelFilterPreview = useCallback(async () => {
+    if (!session) {
+      return;
+    }
+
+    const response = await fetch(
+      `/api/sessions/${session.session_id}/preprocessing/filter/preview`,
+      {
+        method: "DELETE",
+      },
+    );
+    if (!response.ok) {
+      throw new Error(`Could not cancel filter preview (${response.status}).`);
+    }
+
+    setFilterPeriodOptions([]);
+    setSelectedFilterPeriod(null);
+    setFilterFigure(null);
+    setFilterConfirmEnabled(false);
+    setFilterSavedAlert(null);
+    setFilterAlert(null);
+    setIsFilterPreviewLocked(false);
   }, [session]);
 
   const removeFilter = useCallback(async () => {
@@ -379,6 +408,7 @@ export function PreprocessingPage() {
     setFilterFigure(null);
     setFilterConfirmEnabled(false);
     setFilterSavedAlert(null);
+    setIsFilterPreviewLocked(false);
   }, [session]);
 
   const filterControlsDisabled = useMemo(() => {
@@ -671,6 +701,7 @@ export function PreprocessingPage() {
                     <select
                       className="form-select"
                       value={filterType ?? ""}
+                      disabled={isFilterPreviewLocked}
                       onChange={(event) => {
                         const nextValue =
                           event.target.value === ""
@@ -682,6 +713,7 @@ export function PreprocessingPage() {
                         setFilterPeriodOptions([]);
                         setSelectedFilterPeriod(null);
                         setFilterFigure(null);
+                        setIsFilterPreviewLocked(false);
                       }}
                     >
                       <option value="">Choose a filter</option>
@@ -702,6 +734,7 @@ export function PreprocessingPage() {
                             className="form-control"
                             type="number"
                             min={1}
+                            disabled={isFilterPreviewLocked}
                             value={filterOrder}
                             onChange={(event) =>
                               setFilterOrder(Number(event.target.value))
@@ -714,7 +747,7 @@ export function PreprocessingPage() {
                             className="form-control"
                             type="number"
                             min={0}
-                            disabled={filterType === 0}
+                            disabled={filterType === 0 || isFilterPreviewLocked}
                             value={cutoffLow}
                             onChange={(event) =>
                               setCutoffLow(event.target.value)
@@ -727,7 +760,7 @@ export function PreprocessingPage() {
                             className="form-control"
                             type="number"
                             min={0}
-                            disabled={filterType === 1}
+                            disabled={filterType === 1 || isFilterPreviewLocked}
                             value={cutoffHigh}
                             onChange={(event) =>
                               setCutoffHigh(event.target.value)
@@ -739,7 +772,7 @@ export function PreprocessingPage() {
                       <button
                         type="button"
                         className="glass-button glass-button--primary preprocessing-filter-apply"
-                        disabled={filterControlsDisabled}
+                        disabled={filterControlsDisabled || isFilterPreviewLocked}
                         onClick={() => {
                           applyFilter().catch((caughtError: unknown) => {
                             setFilterAlert(
@@ -784,6 +817,23 @@ export function PreprocessingPage() {
                             />
                           ) : null}
                           <div className="preprocessing-filter-confirm-row">
+                            <button
+                              type="button"
+                              className="glass-button glass-button--ghost preprocessing-filter-apply"
+                              onClick={() => {
+                                cancelFilterPreview().catch(
+                                  (caughtError: unknown) => {
+                                    setFilterAlert(
+                                      caughtError instanceof Error
+                                        ? caughtError.message
+                                        : "Could not cancel filter preview.",
+                                    );
+                                  },
+                                );
+                              }}
+                            >
+                              Cancel
+                            </button>
                             <button
                               type="button"
                               className="glass-button glass-button--primary preprocessing-filter-apply"

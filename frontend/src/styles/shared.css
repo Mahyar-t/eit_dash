@@ -213,6 +213,23 @@
   background-size: 12px 8px;
 }
 
+.form-control:disabled,
+.form-select:disabled {
+  color: rgba(0, 0, 0, 0.45);
+  background-color: rgba(200, 200, 200, 0.38);
+  border-color: rgba(160, 160, 160, 0.55);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.form-control:disabled::placeholder {
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.form-select:disabled {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236b7280' d='M1.41.59 6 5.17 10.59.59 12 2l-6 6-6-6z'/%3E%3C/svg%3E");
+}
+
 .glass-input {
   background: rgba(255, 255, 255, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.3);
@@ -241,6 +258,23 @@
 .process-nav-button:hover {
   transform: translateY(-1px);
   box-shadow: 0 16px 30px rgba(var(--ocean-1-rgb), 0.12);
+}
+
+.glass-button:disabled,
+.process-nav-button:disabled {
+  color: rgba(0, 0, 0, 0.45);
+  background: rgba(200, 200, 200, 0.38);
+  border-color: rgba(160, 160, 160, 0.55);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.glass-button:disabled:hover,
+.glass-button:disabled:focus,
+.process-nav-button:disabled:hover,
+.process-nav-button:disabled:focus {
+  transform: none;
+  box-shadow: none;
 }
 
 .glass-button--primary,

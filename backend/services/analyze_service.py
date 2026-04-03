@@ -5,12 +5,14 @@ import json
 from typing import Any
 
 import numpy as np
+import plotly.graph_objects as go
 from eitprocessing.parameters.eeli import EELI
 
 from backend.services.load_service import serialize_dataset
 from backend.services.preprocessing_service import _serialize_filter_card, _serialize_period_card
 from backend.state.session_store import SessionRecord, SessionStablePeriod
 from eit_dash.definitions.constants import FILTERED_EIT_LABEL, RAW_EIT_LABEL
+from eit_dash.utils.common import apply_figure_theme
 from eit_dash.utils.output_rendering import (
     _build_continuous_figure,
     _build_eit_signal_figure,
@@ -27,9 +29,15 @@ from eit_dash.utils.output_rendering import (
     _values_are_2d_maps,
     _values_are_numeric_scalars,
 )
+from eit_dash.utils.time_axis import build_time_axis_context
 
 
 _ANALYZE_SPARSE_LABEL = 'continuous_eelis'
+_HIDDEN_SPARSE_LABELS = {
+    'minvalues_(draeger)',
+    'maxvalues_(draeger)',
+    'events_(draeger)',
+}
 
 
 def build_analyze_state(record: SessionRecord) -> dict[str, Any]:
@@ -305,6 +313,9 @@ def _serialize_sparse_section(sequence, dataset_start_time: float, selection_sta
     items = []
 
     for label, data in _collection_items(sequence.sparse_data):
+        if _should_hide_sparse_artifact(label):
+            continue
+
         card = {
             'title': label,
             'tables': [
@@ -326,8 +337,8 @@ def _serialize_sparse_section(sequence, dataset_start_time: float, selection_sta
             card['figures'].append(
                 {
                     'role': 'plot',
-                    'figure': _serialize_figure(
-                        _build_sparse_numeric_figure(data, dataset_start_time, selection_start_time),
+                        'figure': _serialize_figure(
+                        _build_analyze_sparse_numeric_figure(sequence, label, data, dataset_start_time, selection_start_time),
                     ),
                 },
             )
@@ -348,7 +359,7 @@ def _serialize_sparse_section(sequence, dataset_start_time: float, selection_sta
         items.append(card)
 
     return {
-        'title': f'Sparse Data ({len(sequence.sparse_data)})',
+        'title': f'Sparse Data ({len(items)})',
         'items': items,
         'empty_message': 'No sparse outputs available for this period.' if not items else None,
     }
@@ -390,6 +401,100 @@ def _serialize_figure(figure) -> dict[str, Any]:
     return json.loads(figure.to_json())
 
 
+def _build_analyze_sparse_numeric_figure(sequence, label: str, data, dataset_start_time: float, selection_start_time: float):
+    if label != _ANALYZE_SPARSE_LABEL:
+        return _build_sparse_numeric_figure(data, dataset_start_time, selection_start_time)
+
+    signal = _select_signal(sequence)
+    if signal is None:
+        return _build_sparse_numeric_figure(data, dataset_start_time, selection_start_time)
+
+    values = np.asarray(data.values, dtype=float)
+    if values.size == 0:
+        return _build_sparse_numeric_figure(data, dataset_start_time, selection_start_time)
+
+    signal_time_context = build_time_axis_context(
+        signal.time,
+        dataset_start_time=dataset_start_time,
+        selection_start_time=selection_start_time,
+        y_suffix="<br>Value: %{y:.3f}<extra></extra>",
+    )
+    sparse_time_context = build_time_axis_context(
+        data.time,
+        dataset_start_time=dataset_start_time,
+        selection_start_time=selection_start_time,
+        y_suffix="<br>Value: %{y:.3f}<extra></extra>",
+    )
+
+    mean_value = float(np.nanmean(values))
+    median_value = float(np.nanmedian(values))
+    std_value = float(np.nanstd(values))
+
+    figure = go.Figure()
+    figure.add_trace(
+        go.Scatter(
+            x=signal_time_context.x,
+            y=signal.values,
+            customdata=signal_time_context.customdata,
+            hovertemplate=signal_time_context.hovertemplate,
+            name=signal.label,
+            line={"color": "#22c55e", "width": 2},
+        )
+    )
+    figure.add_trace(
+        go.Scatter(
+            x=sparse_time_context.x,
+            y=values,
+            customdata=sparse_time_context.customdata,
+            hovertemplate=sparse_time_context.hovertemplate,
+            mode="markers",
+            marker={"size": 10, "color": "rgba(255, 0, 0, 1)"},
+            name="EELIs",
+        )
+    )
+    figure.add_hrect(
+        y0=mean_value - std_value,
+        y1=mean_value + std_value,
+        fillcolor="rgba(0, 255, 255, 0.2)",
+        line_width=0,
+    )
+    figure.add_hline(
+        y=mean_value,
+        line_color="rgba(0, 255, 255, 1)",
+        line_width=2,
+        name="Mean",
+    )
+    # Legend-only traces keep the legend entries visible without changing
+    # the actual plot implementation based on hrect/hline.
+    figure.add_trace(
+        go.Scatter(
+            x=[None],
+            y=[None],
+            mode="lines",
+            name="Mean",
+            line={"color": "rgba(0, 255, 255, 1)", "width": 2},
+            hoverinfo="skip",
+        )
+    )
+    figure.add_trace(
+        go.Scatter(
+            x=[None],
+            y=[None],
+            mode="lines",
+            name="Standard deviation",
+            line={"color": "rgba(0, 255, 255, 0.7)", "width": 8},
+            hoverinfo="skip",
+        )
+    )
+    figure.update_layout(
+        title=data.name,
+        xaxis={"title": signal_time_context.axis_title},
+        yaxis={"title": f"{data.category} ({data.unit})" if data.unit else data.category},
+        showlegend=True,
+    )
+    return apply_figure_theme(figure)
+
+
 def _select_active_period(record: SessionRecord, period_options: list[dict[str, int | str]]) -> int | None:
     option_values = {int(option['value']) for option in period_options}
     if record.selected_analyze_period_index in option_values:
@@ -409,3 +514,7 @@ def _get_period(periods: list[SessionStablePeriod], period_index: int) -> Sessio
             return period
     msg = f'Period with index {period_index} not found'
     raise ValueError(msg)
+
+
+def _should_hide_sparse_artifact(label: str) -> bool:
+    return label.lower() in _HIDDEN_SPARSE_LABELS

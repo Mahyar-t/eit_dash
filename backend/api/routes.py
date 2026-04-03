@@ -27,6 +27,7 @@ from backend.services.preprocessing_service import (
     build_filtered_period_preview,
     build_period_preview,
     build_preprocessing_state,
+    cancel_filter_preview,
     confirm_filter_preview,
     remove_saved_filter,
     remove_stable_period,
@@ -380,6 +381,12 @@ def get_filtered_period_preview(session_id: str, period_index: int) -> FilterFig
 def confirm_filtered_periods(session_id: str) -> PeriodsMutationResponse:
     record = _get_session_record(session_id)
     return PeriodsMutationResponse(**confirm_filter_preview(record))
+
+
+@router.delete('/sessions/{session_id}/preprocessing/filter/preview', response_model=FilterApplyResponse)
+def cancel_filtered_preview(session_id: str) -> FilterApplyResponse:
+    record = _get_session_record(session_id)
+    return FilterApplyResponse(**cancel_filter_preview(record))
 
 
 @router.delete('/sessions/{session_id}/preprocessing/filter', response_model=PeriodsMutationResponse)

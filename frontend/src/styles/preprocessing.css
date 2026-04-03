@@ -104,13 +104,14 @@
 }
 
 .preprocessing-filter-apply {
-  justify-self: start;
+  justify-self: center;
   min-width: 160px;
 }
 
 .preprocessing-filter-confirm-row {
   display: flex;
-  justify-content: flex-start;
+  justify-content: center;
+  gap: 1rem;
 }
 
 /* Pre-processing tab: card/detail tuning for closer Dash parity */

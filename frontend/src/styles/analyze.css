@@ -131,6 +131,7 @@
   font-size: 0.85rem;
   font-weight: 600;
   letter-spacing: 0.04em;
+  color: #000000;
   transition:
     background 130ms ease,
     border-color 130ms ease,
@@ -139,14 +140,14 @@
 }
 
 .playback-btn--primary {
-  color: #38bdf8;
+  color: #000000;
   border-color: rgba(56, 189, 248, 0.6);
   background: rgba(56, 189, 248, 0.08);
 }
 
 .playback-btn--primary:hover,
 .playback-btn--primary:focus {
-  color: #f0f9ff;
+  color: #000000;
   border-color: #38bdf8;
   background: rgba(56, 189, 248, 0.22);
   transform: translateY(-1px);
@@ -154,14 +155,14 @@
 }
 
 .playback-btn--secondary {
-  color: #94a3b8;
+  color: #000000;
   border-color: rgba(148, 163, 184, 0.45);
   background: rgba(148, 163, 184, 0.06);
 }
 
 .playback-btn--secondary:hover,
 .playback-btn--secondary:focus {
-  color: #e2e8f0;
+  color: #000000;
   border-color: rgba(148, 163, 184, 0.8);
   background: rgba(148, 163, 184, 0.16);
   transform: translateY(-1px);

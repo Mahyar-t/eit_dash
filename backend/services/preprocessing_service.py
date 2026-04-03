@@ -226,6 +226,14 @@ def confirm_filter_preview(record: SessionRecord) -> dict[str, Any]:
     }
 
 
+def cancel_filter_preview(record: SessionRecord) -> dict[str, Any]:
+    record.temp_filtered_periods = []
+    return {
+        'period_options': [],
+        'confirm_enabled': False,
+    }
+
+
 def remove_saved_filter(record: SessionRecord) -> dict[str, Any]:
     record.temp_filtered_periods = []
     record.saved_filter_params = None
