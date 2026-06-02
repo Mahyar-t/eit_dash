@@ -40,9 +40,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               </button>
             </div>
             <p className="page-intro sidebar-copy">
-              Advanced Lung Image processing for personalized mechanical
-              VEntilation dashboard for loading, pre-processing, and analyzing
-              EIT data.
+              <strong>A</strong>dvanced <strong>L</strong>ung <strong>I</strong>
+              mage processing for personalized mechanical <strong>VE</strong>
+              ntilation dashboard for loading, pre-processing, and analyzing EIT
+              data.
             </p>
             <div className="sidebar-divider" />
             <p className="sidebar-section-label">Explore</p>
