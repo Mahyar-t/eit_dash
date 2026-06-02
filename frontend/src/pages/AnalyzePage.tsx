@@ -150,7 +150,7 @@ export function AnalyzePage() {
     <div className="page-shell page-shell--workflow">
       <div className="stage-card glass-panel">
         <div className="page-hero">
-          <p className="page-kicker">Analyze Data</p>
+          <p className="page-kicker">3. Analyze Data</p>
           <p className="page-intro">
             Review the saved periods, launch the analysis, and inspect the
             output.

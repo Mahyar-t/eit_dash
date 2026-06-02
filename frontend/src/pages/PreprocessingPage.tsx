@@ -430,7 +430,7 @@ export function PreprocessingPage() {
     <div className="page-shell page-shell--workflow">
       <div className="stage-card glass-panel">
         <div className="page-hero">
-          <p className="page-kicker">Pre-processing steps</p>
+          <p className="page-kicker">2. Pre-processing steps</p>
           <p className="page-intro">
             Select stable periods, preview the treatment on top of the raw
             signal, and confirm only the preprocessing results you trust.
@@ -520,7 +520,7 @@ export function PreprocessingPage() {
             <span>Next</span>
             <span>&gt;</span>
           </Link>
-          </div>
+        </div>
       </div>
 
       {periodModalOpen
@@ -772,7 +772,9 @@ export function PreprocessingPage() {
                       <button
                         type="button"
                         className="glass-button glass-button--primary preprocessing-filter-apply"
-                        disabled={filterControlsDisabled || isFilterPreviewLocked}
+                        disabled={
+                          filterControlsDisabled || isFilterPreviewLocked
+                        }
                         onClick={() => {
                           applyFilter().catch((caughtError: unknown) => {
                             setFilterAlert(

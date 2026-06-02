@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 
@@ -320,7 +326,7 @@ export function LoadPage() {
     <div className="page-shell page-shell--workflow">
       <div className="stage-card glass-panel">
         <div className="page-hero">
-          <h2 className="page-kicker">Load Data</h2>
+          <h2 className="page-kicker">1. Load Data</h2>
           <p className="page-intro">
             Bring in a local file, inspect the available channels, and prepare a
             clean set of datasets for the next stage. Loaded datasets and
